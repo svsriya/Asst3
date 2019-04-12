@@ -60,9 +60,12 @@ int main( int argc, char** argv ){
 
 	//call accept
 	int fd;
+	printf("Searching for connection....\n");
 	if( (fd = accept(sockfd, (results->ai_addr), &(results->ai_addrlen))) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 		exit(2);	
+	}else{
+		printf("Client found!\n");
 	}		
 
 

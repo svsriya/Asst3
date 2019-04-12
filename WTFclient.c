@@ -32,7 +32,7 @@ int main( int argc, char** argv )
 	// check the args
 	command = argv[1];
 	
-	if( strcmp(command, "configure") )
+	if( strcmp(command, "configure") ==0 )
 	{
 		// setting ip and port environment variables 
 		ip = argv[2];
@@ -56,9 +56,26 @@ int main( int argc, char** argv )
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 
+	//	printf("hello\n");
+		if( getenv("IP_ADDRS") == NULL){
+			printf("IP_ADDRS not found\n"); exit(2);
+		}else{
+			printf(getenv("IP_ADDRS"));
+			printf("\n");
+		}	
+		
+		if( getenv("PORT_NUM") == NULL){
+			printf("PORT_NUM not found\n"); exit(2);
+		}else{
+			printf(getenv("PORT_NUM"));
+			printf("\n");
+		}	
+	
+//		printf("%s\n", getenv("PORT_NUM"));
+
 		if( (res = getaddrinfo( getenv("IP_ADDRS"), getenv("PORT_NUM"), &hints, &result )) != 0 )
 		{
-			printf( ANSI_COLOR_CYAN "getaddrinfo: %s Line#: %d\n" ANSI_COLOR_RESET, gai_strerror(res), __LINE__ );
+			printf( ANSI_COLOR_CYAN "Error getaddrinfo: %s Line#: %d\n" ANSI_COLOR_RESET, gai_strerror(res), __LINE__ );
 			exit(2);
 		}   
 		
@@ -75,6 +92,9 @@ int main( int argc, char** argv )
 			exit(2);
 		}
 		// CONNECTED
+		else{
+			printf("Connected to server!\n");
+		}
 	}
 	return 0;
 }
