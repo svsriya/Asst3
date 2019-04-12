@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <sys/sockets.h>
+#include <sys/socket.h>
 #include <netdb.h>
 
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -44,7 +44,7 @@ int main( int argc, char** argv )
 		}
 		if( setenv( "PORT_NUM", port, 1 ) == -1 )
 		{
-			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_C0LOR_RESET, errno, strerror(errno), __LINE__);
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET,  errno, strerror(errno), __LINE__);
 			return 0; 
 		}
 		
@@ -58,7 +58,7 @@ int main( int argc, char** argv )
 
 		if( (res = getaddrinfo( getenv("IP_ADDRS"), getenv("PORT_NUM"), &hints, &result )) != 0 )
 		{
-			printf( ANSI_COLOR_CYAN stderr, "getaddrinfo: %s Line#: %d\n", gai_strerror(res) ANSI_COLOR_RESET, __LINE__ );
+			printf( ANSI_COLOR_CYAN "getaddrinfo: %s Line#: %d\n" ANSI_COLOR_RESET, gai_strerror(res), __LINE__ );
 			exit(2);
 		}   
 		
