@@ -134,6 +134,15 @@ int main( int argc, char** argv )
 		else{
 			printf("Connected to server!\n");
 		}
+
+		//send message to server
+		char * buffer = "Hello world!";
+		if ( write(sd, buffer, strlen(buffer)) == -1){	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			close(sd); exit(2);
+		}
+
+
 		free( configure_path );
 		free( filebuff );
 	}

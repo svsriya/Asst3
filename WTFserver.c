@@ -59,15 +59,27 @@ int main( int argc, char** argv ){
 	}
 
 	//call accept
-	int fd;
+	int cfd;
 	printf("Searching for connection....\n");
-	if( (fd = accept(sockfd, (results->ai_addr), &(results->ai_addrlen))) == -1){
+	if( (cfd = accept(sockfd, (results->ai_addr), &(results->ai_addrlen))) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 		exit(2);	
 	}else{
 		printf("Client found!\n");
+
 	}		
+	
+	//receive message from client
+	char bufread [500];
+	if( read(cfd, bufread, sizeof(bufread)) == -1){
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
+		exit(2);	
+	}else{
+		printf("Message sent by client: %s\n");
+	}
 
-
+	printf("Server disconnected from client.\n");
+	
+	close(cfd); close(sockfd);
 	return 0; 
 }
