@@ -5,6 +5,12 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <string.h>
+
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -23,57 +29,90 @@
 int main( int argc, char** argv )
 {
 	char* command;
-	char* ip;
-	char* port;
+	char* configure_path;
+	char* strbuff;
 	struct addrinfo hints;
 	struct addrinfo * result;
 	int res;
 	int sd; 
+	int fd;
+	int len; 
 	// check the args
 	command = argv[1];
 	
-	if( strcmp(command, "configure") ==0 )
+	if( strcmp(command, "configure") == 0 )
 	{
-		// setting ip and port environment variables 
-		ip = argv[2];
-		port = argv[3];
-		if( setenv( "IP_ADDRS", ip, 1 ) == -1 )
-		{
-			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-			return 0;
-		}
-		if( setenv( "PORT_NUM", port, 1 ) == -1 )
-		{
-			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET,  errno, strerror(errno), __LINE__);
-			return 0; 
-		}
-		
+		// create .configure file  
+		configure_path = (char*)malloc(13*sizeof(char));
+		strcpy( configure_path, "./.configure" );
+		configure_path[12] = '\0';
+			
+		if( (fd = open( configure_path, O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1 )
+	        {
+               		 printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+       		}
+		len = strlen(argv[2]) + strlen(argv[3]) + 1;
+		strbuff = (char*)malloc( len + 1 );
+		strbuff[0] = '\0';
+		strcat( strbuff, argv[2] );
+		strcat( strbuff, " " );
+		strcat( strbuff, argv[3] );
+		strbuff[len] = '\0';
+		if( write( fd, strbuff, len ) == -1 )
+                {
+                	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+                }
+
+		if( close( fd ) == -1 )
+	        {
+                	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+	      	}
+
+		free(configure_path);
+		free(strbuff);
 	}
 	else // temporarily just testing that connecting to server works
 	{
+		char* ip;
+		char* port;
+		struct stat file_stat;
+		char* filebuff;
 		// call getaddrinfo
 		hints.ai_flags = 0;
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
-
-	//	printf("hello\n");
-		if( getenv("IP_ADDRS") == NULL){
-			printf("IP_ADDRS not found\n"); exit(2);
-		}else{
-			printf(getenv("IP_ADDRS"));
-			printf("\n");
-		}	
 		
-		if( getenv("PORT_NUM") == NULL){
-			printf("PORT_NUM not found\n"); exit(2);
-		}else{
-			printf(getenv("PORT_NUM"));
-			printf("\n");
-		}	
-	
-//		printf("%s\n", getenv("PORT_NUM"));
+		//open .configure to get ip and port
+		configure_path = (char*)malloc(13*sizeof(char));
+                strcpy( configure_path, "./.configure" );
+                configure_path[12] = '\0';
 
-		if( (res = getaddrinfo( getenv("IP_ADDRS"), getenv("PORT_NUM"), &hints, &result )) != 0 )
+		if( stat(configure_path, &file_stat ) == -1 )
+	        {
+        	        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+               		return;
+       		}
+       		if( (fd = open( configure_path, O_RDONLY)) == -1 )
+       		{
+                	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                	return;
+        	}
+        	filebuff = (char*)malloc( file_stat.st_size+1 );
+        	if( read( fd, filebuff, file_stat.st_size  ) == -1 )
+        	{
+                	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                	return;
+        	}
+       		if( close(fd) == -1 )
+        	{
+                	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+                	return;
+        	}
+		ip = strtok( filebuff, " " );
+		port = strtok( NULL, " " );
+	
+		// steps to connect to server
+		if( (res = getaddrinfo( ip, port, &hints, &result )) != 0 )
 		{
 			printf( ANSI_COLOR_CYAN "Error getaddrinfo: %s Line#: %d\n" ANSI_COLOR_RESET, gai_strerror(res), __LINE__ );
 			exit(2);
@@ -95,6 +134,8 @@ int main( int argc, char** argv )
 		else{
 			printf("Connected to server!\n");
 		}
+		free( configure_path );
+		free( filebuff );
 	}
 	return 0;
 }
