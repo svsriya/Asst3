@@ -29,6 +29,7 @@ int main( int argc, char** argv ){
 
 	struct addrinfo server;
 	struct addrinfo * results;
+	
 	server.ai_family = AF_INET;
 	server.ai_socktype = SOCK_STREAM;
 	server.ai_flags = AI_PASSIVE;
