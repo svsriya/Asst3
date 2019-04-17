@@ -59,7 +59,7 @@ void configure( char* ip, char* port )
 	}
 
 	free(configure_path);
-	free(strbuff);
+	free(strbuff);*/
 }
 
 int main( int argc, char** argv )
@@ -143,7 +143,7 @@ int main( int argc, char** argv )
 		}
 
 		//send message to server
-		char * buffer = "Hello world!";
+		char * buffer = "Hello world!\0";
 		if ( write(sd, buffer, strlen(buffer)) == -1){	
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			close(sd); exit(2);
