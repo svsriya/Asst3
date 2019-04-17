@@ -29,7 +29,7 @@ int main(int argc, char ** argv){
 	char * args1[4];
 	args1[0] = "tar";
 	args1[1] = "-xvf";
-	args1[2] = "testdir1.tgz";
+	args1[2] = "test.txt.tgz";
 	args1[3] = NULL;
 
 	pid_t child2_id = fork();
