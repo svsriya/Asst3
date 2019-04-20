@@ -51,6 +51,7 @@ int main( int argc, char** argv ){
 
 	struct addrinfo server;
 	struct addrinfo * results;
+	int rdres;
 	
 	server.ai_family = AF_INET;
 	server.ai_socktype = SOCK_STREAM;
@@ -103,11 +104,16 @@ int main( int argc, char** argv ){
 	//get message from client
 	char* bufread = (char*)malloc( len + 1 );	
 	bufread[0] = '\0';
-	if( read(cfd, bufread, len) == -1 )
+	rdres = 1;
+	while( rdres > 0 )
 	{
-		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                exit(2);
-	}
+		rdres = read( cfd, bufread, len );
+		if( rdres == -1 )
+		{	
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                	exit(2);
+		}
+	}	
 	bufread[len] = '\0';	
 	printf( "Message from the client: %s\n", bufread );
 	// call method to find the file

@@ -34,7 +34,8 @@ void sendfile( char* filepath, int sd )
 	char* filebuff;
 	int fd;
 	struct stat file_stat;
-	 
+	int rdres;
+		 
 	// 1.Get the filename and bytes
 	filename = (char*)(intptr_t)basename( filepath );
 	sprintf( namelen, "%d", strlen(filename) );
@@ -52,10 +53,15 @@ void sendfile( char* filepath, int sd )
 	}
 	filebuff = (char*)malloc( file_stat.st_size + 1 );
 	filebuff[0] = '\0';
-	if( read( fd, filebuff, file_stat.st_size ) == -1 )
+	rdres = 1;
+	while( rdres > 0 )
 	{
-		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
-                return;
+		rdres = read( fd, filebuff, file_stat.st_size );
+		if( rdres == -1 )
+		{
+			printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+                	return;
+		}
 	}
 	if( close( fd ) == -1 )
 	{
