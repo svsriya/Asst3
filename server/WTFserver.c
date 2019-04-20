@@ -27,6 +27,24 @@
  *  5. call to accept (loop to accept multiple connections
 */
 
+int charToInt( char* );
+
+int charToInt( char* numArr )
+{
+	// used to decipher how many bytes are being sent so string issues stop arising
+	// number will end with ":" to tell the user that the number ended
+	int i;
+	for( i = 0; numArr[i] != ':'; i++ ); // i = number of digits in the number;
+	char* num = (char*)malloc( i + 1 );
+	int j;
+	for( j = 0; j < i; j++ )
+		num[j] = numArr[j];
+	num[i] = '\0';
+	int bytes = atoi(num);
+	free( num );
+	return bytes; 
+}
+
 int main( int argc, char** argv ){
 	
 //	int port_num = argv[1];
@@ -75,13 +93,12 @@ int main( int argc, char** argv ){
 	}		
 	
 	//receive message from client
-	char bufread [500];
+	char bufread [10];
 	if( read(cfd, bufread, sizeof(bufread)) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 		exit(2);	
-	}else{
-		printf("Message sent by client: %s\n", bufread);
 	}
+	printf("Message sent by client: %s\n", bufread);
 	
 	// call method to find the file
 	tarfile( bufread );

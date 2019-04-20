@@ -26,6 +26,23 @@
  *  3. make call to connect
 */
 void configure( char*, char* );
+int charToInt( char* );
+
+int charToInt( char* numArr )
+{
+        // used to decipher how many bytes are being sent so string issues stop arising
+        // number will end with ":" to tell the user that the number ended
+        int i;
+        for( i = 0; numArr[i] != ':'; i++ );// this is number of digits in the number; 
+	char* num = (char*)malloc( i + 1 );
+        int j;
+        for( j = 0; j < i; j++ )
+        	num[j] = numArr[j];
+        num[i] = '\0';
+        int bytes = atoi(num);
+        free( num );
+        return bytes;
+}
 
 void configure( char* ip, char* port )
 {
@@ -139,17 +156,16 @@ int main( int argc, char** argv )
 			exit(2);
 		}
 		// CONNECTED
-		else{
-			printf("Connected to server!\n");
-		}
+		printf("Connected to server!\n");
 
 		//send message to server
-		char * buffer = "./things.txt";
+		char* buffer = "./things.txt";
 		if ( write(sd, buffer, strlen(buffer)) == -1){	
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			close(sd); exit(2);
 		}
-		printf( ANSI_COLOR_MAGENTA "file to get is sent\n" ANSI_COLOR_RESET );
+		printf( ANSI_COLOR_MAGENTA "\"%s\" has been sent to server\n" ANSI_COLOR_RESET, buffer );
+		printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(buffer) );
 		// reading the number of bytes in the buffer sent back
 		char buf2[10];
 		if( read( sd, buf2, 10 ) == -1 )
