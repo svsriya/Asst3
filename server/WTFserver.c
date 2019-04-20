@@ -5,6 +5,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <string.h>
+
+#include "sendrcvfile.h"
+#include "sendrcvfile.c"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -76,8 +80,13 @@ int main( int argc, char** argv ){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 		exit(2);	
 	}else{
-		printf("Message sent by client: %s\n");
+		printf("Message sent by client: %s\n", bufread);
 	}
+	
+	// call method to find the file
+	tarfile( bufread );
+	strcat( bufread, ".tgz\0" );
+	sendfile( bufread, cfd );
 
 	printf("Server disconnected from client.\n");
 	

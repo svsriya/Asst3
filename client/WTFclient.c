@@ -59,7 +59,7 @@ void configure( char* ip, char* port )
 	}
 
 	free(configure_path);
-	free(strbuff);*/
+	free(strbuff);
 }
 
 int main( int argc, char** argv )
@@ -117,6 +117,7 @@ int main( int argc, char** argv )
         	}
 		ip = strtok( filebuff, " " );
 		port = strtok( NULL, " " );
+		port[strlen(port)-1] = '\0';
 		printf( "ip: %s port: %s\n", ip, port);	
 		// steps to connect to server
 		if( (res = getaddrinfo( ip, port, &hints, &result )) != 0 )
@@ -143,13 +144,32 @@ int main( int argc, char** argv )
 		}
 
 		//send message to server
-		char * buffer = "Hello world!\0";
+		char * buffer = "./things.txt";
 		if ( write(sd, buffer, strlen(buffer)) == -1){	
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			close(sd); exit(2);
 		}
+		printf( ANSI_COLOR_MAGENTA "file to get is sent\n" ANSI_COLOR_RESET );
+		// reading the number of bytes in the buffer sent back
+		char buf2[10];
+		if( read( sd, buf2, 10 ) == -1 )
+		{
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        close(sd); exit(2);
+		}
+		int bufflen = atoi( (char*)buf2 );
+		printf( ANSI_COLOR_MAGENTA "Number of bytes being sent: %d\n" ANSI_COLOR_RESET, bufflen );
+		// reading the actual buffer
+		char* bufferbytes = (char*)malloc( bufflen + 1 );
+		if( read( sd, bufferbytes, bufflen ) == -1 )
+		{
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        close(sd); exit(2);
+		}
+		printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
 
 		freeaddrinfo( result );
+		free( bufferbytes );
 		free( configure_path );
 		free( filebuff );
 	}
