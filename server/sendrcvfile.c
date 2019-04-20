@@ -35,7 +35,7 @@ void sendfile( char* filepath, int sd )
 	int fd;
 	struct stat file_stat;
 	int rdres;
-		 
+	int wtres;		 
 	// 1.Get the filename and bytes
 	filename = (char*)(intptr_t)basename( filepath );
 	sprintf( namelen, "%d", strlen(filename) );
@@ -90,17 +90,31 @@ void sendfile( char* filepath, int sd )
 	char len[11];
 	sprintf( len, "%d", strlen(buff) );
 	strcat( len, ":\0" );
-	if( write( sd, len, strlen(len) ) == -1 )
-        {
-                printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
-                return;
-        }
+	wtres = 1;
+	int i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, len+i, strlen(len)-i );
+		printf( "wtres = %d\n", wtres );
+		if( wtres == -1 )
+        	{
+                	printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+                	return;
+        	}
+		i += wtres;
+	}
 	printf( ANSI_COLOR_MAGENTA "Number of bytes to read has been sent to server\n" ANSI_COLOR_RESET );
 	// 4b. send the file
-	if( write( sd, buff, strlen(buff) ) == -1 )
-	{
-		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
-                return;
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, buff+i, strlen(buff)-i );
+		printf( "wtres = %d\n", wtres );
+		if( wtres == -1 )
+		{
+			printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+                	return;
+		}
+		i += wtres;
 	}
 	printf( ANSI_COLOR_MAGENTA "%s sent to client\n" ANSI_COLOR_RESET, filename );
 	free(filebuff);

@@ -70,6 +70,12 @@ int main( int argc, char** argv ){
 		exit(2);
 	}
 
+/*	if( fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK) == -1){
+
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+		exit(2);
+	}
+*/
 	//setup bind
 	if( bind(sockfd, results->ai_addr, results->ai_addrlen) == -1){	
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
@@ -105,17 +111,20 @@ int main( int argc, char** argv ){
 	char* bufread = (char*)malloc( len + 1 );	
 	bufread[0] = '\0';
 	rdres = 1;
-	while( rdres > 0 )
+	int i = 0;
+	while( rdres != 0 )
 	{
-		rdres = read( cfd, bufread, len );
+		rdres = read( cfd, bufread+i, len-i );
+		printf("rdres: %d\n", rdres);
 		if( rdres == -1 )
 		{	
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 	exit(2);
 		}
+		i += rdres;
 	}	
 	bufread[len] = '\0';	
-	printf( "Message from the client: %s\n", bufread );
+	printf( "msg received from client: %s\n", bufread );
 	// call method to find the file
 	tarfile( bufread );
 	strcat( bufread, ".tgz\0" );
