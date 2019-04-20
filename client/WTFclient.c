@@ -52,6 +52,7 @@ void configure( char* ip, char* port )
 	int fd;
 
 	configure_path = (char*)malloc(13*sizeof(char));
+	configure_path[0] = '\0';
 	strcpy( configure_path, "./.configure" );
 	configure_path[12] = '\0';		
 	if( (fd = open( configure_path, O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1 )
@@ -108,6 +109,7 @@ int main( int argc, char** argv )
 		
 		//open .configure to get ip and port
 		configure_path = (char*)malloc(13*sizeof(char));
+		configure_path[0] = '\0';
                 strcpy( configure_path, "./.configure" );
                 configure_path[12] = '\0';
 
@@ -122,6 +124,7 @@ int main( int argc, char** argv )
                 	return;
         	}
         	filebuff = (char*)malloc( file_stat.st_size+1 );
+		filebuff[0] = '\0';
         	if( read( fd, filebuff, file_stat.st_size  ) == -1 )
         	{
                 	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
@@ -159,13 +162,22 @@ int main( int argc, char** argv )
 		printf("Connected to server!\n");
 
 		//send message to server
-		char* buffer = "./things.txt";
-		if ( write(sd, buffer, strlen(buffer)) == -1){	
+		char* buffer = argv[1];
+		char num[10];
+		sprintf( num, "%d", strlen(buffer) );
+		strcat( num, ":\0" );
+		// first send the number of bytes
+		if ( write(sd, num, strlen(num)) == -1){	
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			close(sd); exit(2);
-		}
-		printf( ANSI_COLOR_MAGENTA "\"%s\" has been sent to server\n" ANSI_COLOR_RESET, buffer );
+		}	
 		printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(buffer) );
+		// send the data
+		if ( write(sd, buffer, strlen(buffer)) == -1){        
+                        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        close(sd); exit(2);
+                }
+		printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, buffer );	
 		// reading the number of bytes in the buffer sent back
 		char buf2[10];
 		if( read( sd, buf2, 10 ) == -1 )
@@ -173,17 +185,19 @@ int main( int argc, char** argv )
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                         close(sd); exit(2);
 		}
-		int bufflen = atoi( (char*)buf2 );
-		printf( ANSI_COLOR_MAGENTA "Number of bytes being sent: %d\n" ANSI_COLOR_RESET, bufflen );
+		int bufflen = charToInt( (char*)buf2 );
+		printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
 		// reading the actual buffer
 		char* bufferbytes = (char*)malloc( bufflen + 1 );
+		bufferbytes[0] = '\0';
 		if( read( sd, bufferbytes, bufflen ) == -1 )
 		{
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                         close(sd); exit(2);
 		}
+		bufferbytes[bufflen] = '\0';
 		printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
-
+			
 		freeaddrinfo( result );
 		free( bufferbytes );
 		free( configure_path );

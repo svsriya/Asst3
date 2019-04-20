@@ -88,25 +88,35 @@ int main( int argc, char** argv ){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 		exit(2);	
 	}else{
-		printf("Client found!\n");
+		printf( ANSI_COLOR_YELLOW "Client found!\n" ANSI_COLOR_RESET );
 
 	}		
 	
-	//receive message from client
-	char bufread [10];
-	if( read(cfd, bufread, sizeof(bufread)) == -1){
+	//receive number of bytes in message from client
+	char buflen[10];
+	if( read(cfd, buflen, sizeof(buflen)) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 		exit(2);	
 	}
-	printf("Message sent by client: %s\n", bufread);
-	
+	int len = charToInt((char*)buflen);	
+	printf("Number of bytes being recieved: %d\n", len);
+	//get message from client
+	char* bufread = (char*)malloc( len + 1 );	
+	bufread[0] = '\0';
+	if( read(cfd, bufread, len) == -1 )
+	{
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                exit(2);
+	}
+	bufread[len] = '\0';	
+	printf( "Message from the client: %s\n", bufread );
 	// call method to find the file
 	tarfile( bufread );
 	strcat( bufread, ".tgz\0" );
 	sendfile( bufread, cfd );
 
 	printf("Server disconnected from client.\n");
-	
+	free(bufread);
 	close(cfd); close(sockfd);
 	return 0; 
 }

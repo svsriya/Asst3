@@ -51,6 +51,7 @@ void sendfile( char* filepath, int sd )
                 return;
 	}
 	filebuff = (char*)malloc( file_stat.st_size + 1 );
+	filebuff[0] = '\0';
 	if( read( fd, filebuff, file_stat.st_size ) == -1 )
 	{
 		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
@@ -61,6 +62,8 @@ void sendfile( char* filepath, int sd )
 		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 return;
 	}
+	bufflen = strlen(filebuff);
+	filebuff[bufflen] = '\0';
 	// 3. Create the buffer to send to client -> protocol = "sendfile:numbytesinname:filename:numbytesinfile:file"
 	bufflen = 9 + 1 + strlen(namelen) + 1 + strlen(filename) + 1 + strlen(filelen) + 1 + strlen(filebuff);
 	buff = (char*)malloc( bufflen + 1 );
@@ -77,17 +80,18 @@ void sendfile( char* filepath, int sd )
 	printf( ANSI_COLOR_YELLOW "buffer = %s\n" ANSI_COLOR_RESET, buff );
 	
 	// 4. Send the actual file to client
-	// first send the number of bytes that the buffer is
-	char len[10];
+	// 4a. first send the number of bytes that the buffer is
+	char len[11];
 	sprintf( len, "%d", strlen(buff) );
+	strcat( len, ":\0" );
 	if( write( sd, len, strlen(len) ) == -1 )
         {
                 printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 return;
         }
 	printf( ANSI_COLOR_MAGENTA "Number of bytes to read has been sent to server\n" ANSI_COLOR_RESET );
-	// send the file
-	if( write( sd, buff, strlen(buff) ) )
+	// 4b. send the file
+	if( write( sd, buff, strlen(buff) ) == -1 )
 	{
 		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 return;
@@ -108,6 +112,7 @@ void tarfile( char* path )
 	printf( "filename = %s\n", filename );
 	len = strlen( "tar cvf " ) + strlen( filename ) + 5 + strlen(path);
 	command = (char*)malloc( len + 1 );
+	command[0] = '\0';
 	strcat( command, "tar cvf " );
 	strcat( command, filename );
 	strcat( command, ".tgz " );
