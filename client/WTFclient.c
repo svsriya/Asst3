@@ -102,6 +102,7 @@ int main( int argc, char** argv )
 		struct stat file_stat;
 		char* filebuff;
 		int rdres;
+		int wtres;
 		// call getaddrinfo
 		memset(&hints, 0, sizeof(struct addrinfo));
 		hints.ai_flags = AI_PASSIVE;
@@ -144,7 +145,7 @@ int main( int argc, char** argv )
         	}
 		ip = strtok( filebuff, " " );
 		port = strtok( NULL, " " );
-		port[strlen(port)-1] = '\0';
+		port[strlen(port)] = '\0';
 		printf( "ip: %s port: %s\n", ip, port);	
 		// steps to connect to server
 		if( (res = getaddrinfo( ip, port, &hints, &result )) != 0 )
@@ -153,11 +154,18 @@ int main( int argc, char** argv )
 			exit(2);
 		}   
 		
-		if( ( sd = socket( result->ai_family, result->ai_socktype, result->ai_protocol )) == -1 )
+		if( ( sd = socket( result->ai_family, result->ai_socktype , result->ai_protocol )) == -1 )
 		{
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			exit(2);
 		}
+
+
+	/*	if( fcntl(sd, F_SETFL, fcntl(sd, F_GETFL, 0) | O_NONBLOCK) == -1){
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			exit(2);
+		}
+*/
 	
 		if( connect( sd, result->ai_addr, result->ai_addrlen ) == -1 )
 		{
@@ -174,29 +182,44 @@ int main( int argc, char** argv )
 		sprintf( num, "%d", strlen(buffer) );
 		strcat( num, ":\0" );
 		// first send the number of bytes
-		if ( write(sd, num, strlen(num)) == -1){	
-			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-			close(sd); exit(2);
-		}	
+		wtres = 1;
+		int i = 0;
+		while( wtres > 0 ){
+			wtres = write( sd, num+i, strlen(num)-i );
+			printf("wtres: %d\n", wtres);
+			if ( wtres == -1){	
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+				exit(2);
+			}	
+			i += wtres;
+		}
 		printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(buffer) );
 		// send the data
-		if ( write(sd, buffer, strlen(buffer)) == -1){        
-                        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                        close(sd); exit(2);
-                }
+		wtres = 1;
+		i = 0;
+		while( wtres > 0 ){
+			wtres = write( sd, buffer+i, strlen(buffer)-i );
+			if ( wtres == -1){        
+                        	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        	exit(2);
+                	}
+			i += wtres;
+		}
 		printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, buffer );	
 		// reading the number of bytes in the buffer sent back
 		char buf2[10];
 		rdres = 1;
+		i = 0;
 		while( rdres > 0 )
 		{	
-			rdres = read( sd, buf2, 10 );
+			rdres = read( sd, buf2+i, 10-i );
 			printf( "number of bytes read: %d\n", rdres );
 			if( rdres == -1 )
 			{	
 				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                         	close(sd); exit(2);
 			}
+			i += rdres;
 		}
 		int bufflen = charToInt( (char*)buf2 );
 		printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
@@ -204,15 +227,21 @@ int main( int argc, char** argv )
 		char* bufferbytes = (char*)malloc( bufflen + 1 );
 		bufferbytes[0] = '\0';
 		rdres = 1;
-		while( rdres > 0 )
+		i = 0;
+		while( 1 )
 		{
-			rdres = read( sd, bufferbytes, bufflen );
+			rdres = read( sd, bufferbytes+i, bufflen-i );
+
+			printf("bufflen - i : %d\n", bufflen-i);
 			printf( "number of bytes read: %d\n", rdres );
-			if( rdres == -1 )
-			{
+			if( rdres == -1 ){
 				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                        	close(sd); exit(2);
+                        	exit(2);
+
+			}else if( rdres == 0){
+				break;
 			}
+			i += rdres;
 		}
 		bufferbytes[bufflen] = '\0';
 		printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
