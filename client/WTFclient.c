@@ -182,37 +182,46 @@ int main( int argc, char** argv )
 		sprintf( num, "%d", strlen(buffer) );
 		strcat( num, ":\0" );
 		// first send the number of bytes
-		wtres = 1;
+		//wtres = 1;
+
+		int bytes2write = strlen(num);
+		wtres = write( sd, num, bytes2write );
 		int i = 0;
 		while( wtres > 0 ){
-			wtres = write( sd, num+i, strlen(num)-i );
 			printf("wtres: %d\n", wtres);
 			if ( wtres == -1){	
 				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 				exit(2);
 			}	
-			i += wtres;
+			bytes2write -= wtres;
+			i +=wtres;
+
+			wtres = write( sd, num+i, bytes2write );
 		}
 		printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(buffer) );
 		// send the data
-		wtres = 1;
+		//wtres = 1;
 		i = 0;
+		bytes2write = strlen(buffer);
+		wtres = write( sd, buffer, bytes2write);
 		while( wtres > 0 ){
-			wtres = write( sd, buffer+i, strlen(buffer)-i );
 			if ( wtres == -1){        
                         	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                         	exit(2);
                 	}
-			i += wtres;
+			bytes2write -= wtres;
+			buffer += wtres;			
+			wtres = write( sd, buffer, bytes2write );
 		}
 		printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, buffer );	
 		// reading the number of bytes in the buffer sent back
 		char buf2[10];
-		rdres = 1;
+		//rdres = 1;
 		i = 0;
+
+		rdres = read( sd, buf2, 10-i );
 		while( rdres > 0 )
 		{	
-			rdres = read( sd, buf2+i, 10-i );
 			printf( "number of bytes read: %d\n", rdres );
 			if( rdres == -1 )
 			{	
@@ -220,29 +229,32 @@ int main( int argc, char** argv )
                         	close(sd); exit(2);
 			}
 			i += rdres;
+			rdres = read( sd, buf2+i, 10-i );
 		}
 		int bufflen = charToInt( (char*)buf2 );
 		printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
 		// reading the actual buffer
 		char* bufferbytes = (char*)malloc( bufflen + 1 );
 		bufferbytes[0] = '\0';
-		rdres = 1;
+		//rdres = 1;
+
+		rdres = read( sd, bufferbytes, bufflen);
 		i = 0;
-		while( 1 )
+		while( rdres > 0 )
 		{
-			rdres = read( sd, bufferbytes+i, bufflen-i );
+		//	rdres = read( sd, bufferbytes+i, bufflen-i );
 
 			printf("bufflen - i : %d\n", bufflen-i);
-			printf( "number of bytes read: %d\n", rdres );
+			printf( "number of bytes READ: %d\n", rdres );
 			if( rdres == -1 ){
 				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                         	exit(2);
 
-			}else if( rdres == 0){
-				break;
 			}
-			i += rdres;
+			i += rdres;	
+			rdres = read( sd, bufferbytes, bufflen-i );
 		}
+
 		bufferbytes[bufflen] = '\0';
 		printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
 			
