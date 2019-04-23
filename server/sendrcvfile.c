@@ -40,6 +40,7 @@ void sendfile( char* filepath, int sd )
 	filename = (char*)(intptr_t)basename( filepath );
 	sprintf( namelen, "%d", strlen(filename) );
 	// 2. Get the file and bytes
+	printf( "filepath: %s\n", filepath );
 	if( stat( filepath, &file_stat ) == -1 )
 	{
 		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
@@ -102,7 +103,7 @@ void sendfile( char* filepath, int sd )
         	}
 		i += wtres;
 	}
-	printf( ANSI_COLOR_MAGENTA "Number of bytes to read has been sent to server\n" ANSI_COLOR_RESET );
+	printf( ANSI_COLOR_MAGENTA "Number of bytes to read has been sent to client\n" ANSI_COLOR_RESET );
 	// 4b. send the file
 	wtres = 1;
 	i = 0;

@@ -70,6 +70,15 @@ int main( int argc, char** argv ){
 		exit(2);
 	}
 
+	int enable = 1;
+	if( setsockopt( sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1 )
+         {
+         	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                exit(2);
+         }
+
+
+
 /*	if( fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK) == -1){
 
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
@@ -112,7 +121,7 @@ int main( int argc, char** argv ){
 	bufread[0] = '\0';
 	rdres = 1;
 	int i = 0;
-	while( rdres != 0 )
+	while( rdres > 0 )
 	{
 		rdres = read( cfd, bufread+i, len-i );
 		printf("rdres: %d\n", rdres);
