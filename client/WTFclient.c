@@ -12,6 +12,9 @@
 #include <string.h>
 
 
+#include "parseprotoc.c"
+#include "parseprotoc.h"
+
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -28,8 +31,7 @@
 void configure( char*, char* );
 int charToInt( char* );
 
-int charToInt( char* numArr )
-{
+int charToInt( char* numArr ){
         // used to decipher how many bytes are being sent so string issues stop arising
         // number will end with ":" to tell the user that the number ended
         int i;
@@ -44,8 +46,7 @@ int charToInt( char* numArr )
         return bytes;
 }
 
-void configure( char* ip, char* port )
-{
+void configure( char* ip, char* port ){
 	char* configure_path;
 	int len;
 	char* strbuff;
@@ -55,10 +56,10 @@ void configure( char* ip, char* port )
 	configure_path[0] = '\0';
 	strcpy( configure_path, "./.configure" );
 	configure_path[12] = '\0';		
-	if( (fd = open( configure_path, O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1 )
-	{
+	if( (fd = open( configure_path, O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1 ){
         	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
       	}
+
 	len = strlen(ip) + strlen(port) + 1;
 	strbuff = (char*)malloc( len + 1 );
 	strbuff[0] = '\0';
@@ -66,13 +67,11 @@ void configure( char* ip, char* port )
 	strcat( strbuff, " " );
 	strcat( strbuff, port );
 	strbuff[len] = '\0';
-	if( write( fd, strbuff, len ) == -1 )
-        {
+	if( write( fd, strbuff, len ) == -1 ){
                 printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
         }
 
-	if( close( fd ) == -1 )
-	{
+	if( close( fd ) == -1 ){
                 printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 	}
 
@@ -80,17 +79,15 @@ void configure( char* ip, char* port )
 	free(strbuff);
 }
 
-int main( int argc, char** argv )
-{
+int main( int argc, char** argv ){
 	char* command;
 	// check the args
 	command = argv[1];	
-	if( strcmp(command, "configure") == 0 ) // create .configure file
-	{
+	if( strcmp(command, "configure") == 0 ){ // create .configure file
 		configure( argv[2], argv[3] );  
 	}
-	else // temporarily just testing that connecting to server works
-	{
+	else{ // temporarily just testing that connecting to server works
+	
 		char* configure_path;
 		int fd;
 		struct addrinfo hints;
@@ -115,13 +112,11 @@ int main( int argc, char** argv )
                 strcpy( configure_path, "./.configure" );
                 configure_path[12] = '\0';
 
-		if( stat(configure_path, &file_stat ) == -1 )
-	        {
+		if( stat(configure_path, &file_stat ) == -1 ){
         	        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                		return;
        		}
-       		if( (fd = open( configure_path, O_RDONLY)) == -1 )
-       		{
+       		if( (fd = open( configure_path, O_RDONLY)) == -1 ){
                 	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 	return;
         	}
@@ -229,8 +224,8 @@ int main( int argc, char** argv )
 		while( rdres > 0 ){
 			rdres = read( sd, bufferbytes+i, bufflen-i );
 
-			printf("bufflen - i : %d\n", bufflen-i);
-			printf( "number of bytes read: %d\n", rdres );
+			//printf("bufflen - i : %d\n", bufflen-i);
+			//printf( "number of bytes read: %d\n", rdres );
 			if( rdres == -1 ){
 				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                         	exit(2);
@@ -240,7 +235,10 @@ int main( int argc, char** argv )
 		}
 		bufferbytes[bufflen] = '\0';
 		printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
-			
+		//call parsebuff here		
+		parseProtoc(&bufferbytes);
+
+	
 		freeaddrinfo( result );
 		free( bufferbytes );
 		free( configure_path );

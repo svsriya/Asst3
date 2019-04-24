@@ -26,6 +26,29 @@ int openrequested (char *);
 void sendProtoco();
 void destroyProtocolFile();
 void traverseDir(char *);
+void createGzip();
+
+
+
+void createGzip(){
+
+	//open up gz file
+	char * gzpath = "./protocol.txt.gz";
+	char * cmd = "./gzappend protocol.txt.gz protocol.txt";
+
+	int fd_gz;
+
+	if( (fd_gz = open(gzpath, O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
+		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
+	}
+
+	if( (system(cmd)) == -1){
+		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); return; 
+	}
+	
+
+}
+
 
 void traverseDir( char * path){
 	DIR * dirp = opendir(path);
@@ -101,13 +124,13 @@ void traverseDir( char * path){
 				}
 
 				//NOW WRITE TO PROTOCOLFILE!!!!
-				char * append = malloc( 3 + strlen(bytesname)+1 + strlen(tmp)+1 + strlen(bytesdata)+1 + strlen(buf)+1);
+				char * append = malloc( 3 + strlen(bytesname)+1 + strlen(tmp)+1 + strlen(bytesdata)+1 + strlen(buf)+1+1);
 				append[0]= '\0';
 				strcat( append, "-3:");
 				strcat( append, bytesname); strcat (append, ":");
 				strcat( append, tmp); strcat(append, ":");
 				strcat( append, bytesdata); strcat(append, ":");
-				strcat( append, buf); strcat(append, "\0");	
+				strcat( append, buf); strcat(append, ":");	
 					
 				printf("appendfile: %s\n", append);
 
@@ -179,14 +202,14 @@ int openrequested (char * path){
 					}
 
 					//NOW WRITE TO PROTOCOLFILE!!!!
-					char * append = malloc(9 + 3 + strlen(bytesname)+1 + strlen(path)+1 + strlen(bytesdata)+1 + strlen(buf)+1);
+					char * append = malloc(9 + 3 + strlen(bytesname)+1 + strlen(path)+1 + strlen(bytesdata)+1 + strlen(buf)+1+1);
 					append[0]= '\0';
 					strcat( append, "sendfile:");
 					strcat( append, "-3:");
 					strcat( append, bytesname); strcat (append, ":");
 					strcat( append, path); strcat(append, ":");
 					strcat( append, bytesdata); strcat(append, ":");
-					strcat( append, buf); strcat(append, "\0");	
+					strcat( append, buf); strcat(append, ":");	
 					
 //					printf("append: %s\n", append);
 
@@ -270,7 +293,34 @@ void createProtocol (char * path, int sockd){
 	}
 
 	printf("protoc: %s\n", buf);
-		
+
+	//sendProtocol to client			
+	char len[10];
+	sprintf(len, "%010d", strlen(buf)); 
+	int i = 0;
+	int written;
+
+	while( i != strlen(len)){
+		if( (written = write(sockd, len+i, strlen(len)-i)) == -1){
+               		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+                	exit(2);
+		}
+		i+=written;
+	}	
 	
+	printf(ANSI_COLOR_YELLOW "%s bytes to read send to client\n" ANSI_COLOR_RESET, len);
+
+
+	i=0;
+	while( i!= strlen(buf)){
+		if( (written = write(sockd, buf+i, strlen(buf)-i)) == -1){
+               		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+                	exit(2);
+		}
+		i+=written;
+	}
+
+	printf(ANSI_COLOR_YELLOW "protocol sent to client\n" ANSI_COLOR_RESET, len);
+	free(buf);	
 	return;
 }

@@ -22,7 +22,6 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 void sendfile( char*, int );
-void tarfile( char* );
 
 void sendfile( char* filepath, int sd )
 {
@@ -122,37 +121,5 @@ void sendfile( char* filepath, int sd )
 	free(buff);
 }
 
-void tarfile( char* path )
-{
-	printf( "path sent in tarfile = %s\n length of path = %d\n", path, strlen(path));
-	// tar cvf <file>.tgz <filepath>
-	char* filename;
-	char* command;
-	int len;
-	filename = (char*)(intptr_t)basename( path );
-	printf( "filename = %s\n", filename );
-	len = strlen( "tar cvf " ) + strlen( filename ) + 5 + strlen(path);
-	command = (char*)malloc( len + 1 );
-	command[0] = '\0';
-	strcat( command, "tar cvf " );
-	strcat( command, filename );
-	strcat( command, ".tgz " );
-	strcat( command, path );
-	command[len] = '\0';
 
-	if( system( command ) == -1 )
-	{
-		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
-                return;
-	}
-	printf( ANSI_COLOR_YELLOW "%s.tgz created!\n" ANSI_COLOR_RESET, filename );
-	free( command );
-	return;
-}
-/*
-int main( int argc, char** argv )
-{
-	tarfile( "./things.txt" );
-	sendfile( "./things.txt", 0 );
-	return 0;
-}*/
+

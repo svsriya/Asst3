@@ -130,8 +130,9 @@ int main( int argc, char** argv ){
 	// call method to find the file
 //	tarfile( bufread );
 //	strcat( bufread, ".tgz\0" );
-	createProtocol( bufread, cfd );
-//	sendProtocol();
+	createProtocol( bufread, cfd ); /* creates and send protocol to client */
+	//createGzip();
+//	sendProtocol("./protocol.txt", cfd);
 //	destroyProtocolFile();	
 
 	printf("Server disconnected from client.\n");

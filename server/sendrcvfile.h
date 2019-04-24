@@ -1,2 +1,2 @@
 void sendfile( char*, int );
-void tarfile( char* );
+//void tarfile( char* );
