@@ -1,1 +1,2 @@
-ou are wrongly using an hack to pass an integer to a thread. The idea behind what you are doing is an integer is 4 bytes and a pointer is 4 bytes in x86_32 (8 bytes in x86_64) so I can convert an integer type to a pointer type and then convert it back to an int type without losing any data. This works in the majority of the scenarios, but there is not guarantee that a pointer and an integer have the same size. 
+hi this is mahwish how are you today
+i'm good

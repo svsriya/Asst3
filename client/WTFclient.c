@@ -128,8 +128,9 @@ int main( int argc, char** argv )
         	filebuff = (char*)malloc( file_stat.st_size+1 );
 		filebuff[0] = '\0';
 		rdres = 1;
-        	while( rdres > 0 )
-		{
+
+		//this doesnt have to be in a while loop, we're just reading from an file
+        	while( rdres > 0 ){
 			rdres = read( fd, filebuff, file_stat.st_size  );
 			printf( "number of bytes read: %d\n", rdres );
 			if( rdres == -1 )
@@ -138,55 +139,47 @@ int main( int argc, char** argv )
                 		return;
         		}
 		}
-       		if( close(fd) == -1 )
-        	{
+		//close out the configure file. 
+       		if( close(fd) == -1 ){
                 	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 	return;
         	}
+
 		ip = strtok( filebuff, " " );
 		port = strtok( NULL, " " );
 		port[strlen(port)] = '\0';
 		printf( "ip: %s port: %s\n", ip, port);	
 		// steps to connect to server
-		if( (res = getaddrinfo( ip, port, &hints, &result )) != 0 )
-		{
+		if( (res = getaddrinfo( ip, port, &hints, &result )) != 0 ){
 			printf( ANSI_COLOR_CYAN "Error getaddrinfo: %s Line#: %d\n" ANSI_COLOR_RESET, gai_strerror(res), __LINE__ );
 			exit(2);
 		}   
 		
-		if( ( sd = socket( result->ai_family, result->ai_socktype , result->ai_protocol )) == -1 )
-		{
+		if( ( sd = socket( result->ai_family, result->ai_socktype , result->ai_protocol )) == -1 ){
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			exit(2);
 		}
 		
+		//using setsockopt to REUSE port immediately after closing connection
 		int enable = 1; 
-		if( setsockopt( sd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1 )
-		{
+		if( setsockopt( sd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1 ){
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                         exit(2);
 		}
 
-	/*	if( fcntl(sd, F_SETFL, fcntl(sd, F_GETFL, 0) | O_NONBLOCK) == -1){
-			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-			exit(2);
-		}
-*/
-	
-		if( connect( sd, result->ai_addr, result->ai_addrlen ) == -1 )
-		{
+		if( connect( sd, result->ai_addr, result->ai_addrlen ) == -1 ){
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			close(sd);
 			exit(2);
 		}
 		// CONNECTED
-		printf("Connected to server!\n");
+		printf("Client connected to server!\n");
 
 		//send message to server
 		char* buffer = argv[1];
 		char num[10];
-		sprintf( num, "%d", strlen(buffer) );
-		strcat( num, ":\0" );
+		sprintf( num, "%010d", strlen(buffer) );
+		//strcat( num, ":\0" );
 		// first send the number of bytes
 		wtres = 1;
 		int i = 0;
@@ -216,8 +209,7 @@ int main( int argc, char** argv )
 		char buf2[10];
 		rdres = 1;
 		i = 0;
-		while( rdres > 0 )
-		{	
+		while( rdres > 0 ){	
 			rdres = read( sd, buf2+i, 10-i );
 			printf( "number of bytes read: %d\n", rdres );
 			if( rdres == -1 )
@@ -234,8 +226,7 @@ int main( int argc, char** argv )
 		bufferbytes[0] = '\0';
 		rdres = 1;
 		i = 0;
-		while( rdres > 0 )
-		{
+		while( rdres > 0 ){
 			rdres = read( sd, bufferbytes+i, bufflen-i );
 
 			printf("bufflen - i : %d\n", bufflen-i);

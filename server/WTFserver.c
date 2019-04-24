@@ -10,6 +10,10 @@
 #include "sendrcvfile.h"
 #include "sendrcvfile.c"
 
+#include "createprotocol.h"
+#include "createprotocol.c"
+
+
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -29,13 +33,12 @@
 
 int charToInt( char* );
 
-int charToInt( char* numArr )
-{
+int charToInt( char* numArr ){
 	// used to decipher how many bytes are being sent so string issues stop arising
 	// number will end with ":" to tell the user that the number ended
 	int i;
-	for( i = 0; numArr[i] != ':'; i++ ); // i = number of digits in the number;
-	char* num = (char*)malloc( i + 1 );
+	for( i = 0;  i<strlen(numArr); i++ ); // i = number of digits in the number;
+	char* num = (char*)malloc( i + 2 );
 	int j;
 	for( j = 0; j < i; j++ )
 		num[j] = numArr[j];
@@ -71,20 +74,11 @@ int main( int argc, char** argv ){
 	}
 
 	int enable = 1;
-	if( setsockopt( sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1 )
-         {
+	if( setsockopt( sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1 ){
          	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 exit(2);
-         }
+        }
 
-
-
-/*	if( fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK) == -1){
-
-		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-		exit(2);
-	}
-*/
 	//setup bind
 	if( bind(sockfd, results->ai_addr, results->ai_addrlen) == -1){	
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
@@ -114,19 +108,18 @@ int main( int argc, char** argv ){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 		exit(2);	
 	}
+
 	int len = charToInt((char*)buflen);	
 	printf("Number of bytes being recieved: %d\n", len);
 	//get message from client
 	char* bufread = (char*)malloc( len + 1 );	
-	bufread[0] = '\0';
+//	bufread[0] = '\0';
 	rdres = 1;
 	int i = 0;
-	while( rdres > 0 )
-	{
+	while( rdres > 0 ){
 		rdres = read( cfd, bufread+i, len-i );
 		printf("rdres: %d\n", rdres);
-		if( rdres == -1 )
-		{	
+		if( rdres == -1 ){	
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 	exit(2);
 		}
@@ -135,9 +128,11 @@ int main( int argc, char** argv ){
 	bufread[len] = '\0';	
 	printf( "msg received from client: %s\n", bufread );
 	// call method to find the file
-	tarfile( bufread );
-	strcat( bufread, ".tgz\0" );
-	sendfile( bufread, cfd );
+//	tarfile( bufread );
+//	strcat( bufread, ".tgz\0" );
+	createProtocol( bufread, cfd );
+//	sendProtocol();
+//	destroyProtocolFile();	
 
 	printf("Server disconnected from client.\n");
 	free(bufread);

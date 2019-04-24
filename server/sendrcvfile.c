@@ -88,9 +88,9 @@ void sendfile( char* filepath, int sd )
 	
 	// 4. Send the actual file to client
 	// 4a. first send the number of bytes that the buffer is
-	char len[11];
-	sprintf( len, "%d", strlen(buff) );
-	strcat( len, ":\0" );
+	char len[10];
+	sprintf( len, "%010d", strlen(buff) );
+	strcat( len, "\0" );
 	wtres = 1;
 	int i = 0;
 	while( wtres > 0 ){
