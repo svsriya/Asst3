@@ -28,9 +28,9 @@ char* searchProj( char* projname )
 	char* projpath;
 
 	projpath = (char*)malloc( 7 + strlen(projname) + 1 );
-	strcpy( projpath, "./root/" );
+	projpath[0] - '\0';
+	strcat( projpath, "./root/" );
 	strcat( projpath, projname );
-	projpath[strlen(projpath)] = '\0';
 
 	if( (dirp = opendir(projpath)) == NULL )
 		return NULL;
