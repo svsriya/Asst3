@@ -45,8 +45,6 @@ void createGzip(){
 	if( (system(cmd)) == -1){
 		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); return; 
 	}
-	
-
 }
 
 
