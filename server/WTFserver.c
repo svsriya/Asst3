@@ -32,6 +32,42 @@
 */
 
 int charToInt( char* );
+int checkoutProj(int);
+
+int checkoutProj(int cfd){
+
+	//get bytesname
+	char buflen[10];
+	if( read(cfd, buflen, sizeof(buflen)) == -1){
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
+		return -1;	
+	}
+
+	int len = charToInt((char*)buflen);	
+	printf("Number of bytes_projname being recieved: %d\n", len);
+
+	//get projname from client
+	char* bufread2 = (char*)malloc( len + 1 );	
+//	bufread[0] = '\0';
+	int rdres = 1;
+	int i = 0;
+	while( rdres > 0 ){
+		rdres = read( cfd, bufread2+i, len-i );
+		printf("rdres: %d\n", rdres);
+		if( rdres == -1 ){	
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                	return -1;
+		}
+		i += rdres;
+	}	
+	bufread2[len] = '\0';	
+	printf( "projname received from client: %s\n", bufread2);
+	// call method to find the file
+//	tarfile( bufread );
+//	strcat( bufread, ".tgz\0" );
+	createProtocol( bufread2, cfd ); /* creates and send protocol to client */
+	return 0;
+}
 
 int charToInt( char* numArr ){
 	// used to decipher how many bytes are being sent so string issues stop arising
@@ -56,15 +92,24 @@ int main( int argc, char** argv ){
 	struct addrinfo * results;
 	int rdres;
 	
+	memset(&server, 0, sizeof(struct addrinfo));
+
 	server.ai_family = AF_INET;
 	server.ai_socktype = SOCK_STREAM;
-	server.ai_flags = AI_PASSIVE;
+	server.ai_flags = AI_PASSIVE;	
 	
 	int res =  getaddrinfo(NULL, argv[1], &server, &results);
 	if(res!=0){
 		printf("Error: %s\n", gai_strerror(res)); exit(2);
 	}
 
+	//check to see if root dir exists. if yes, create. if not, dont create and sets errno
+	//INITIAL BOOTUP of WTFserver CREATES EMPTY ROOT
+	if(mkdir("root", S_IRUSR | S_IWUSR | S_IXUSR) == -1){
+		printf("./root dir exists!\n");
+	}else{
+		printf("./root dir created!\n");
+	}
 
 	//setup socket
 	int sockfd;
@@ -103,6 +148,8 @@ int main( int argc, char** argv ){
 	}		
 	
 	//receive number of bytes in message from client
+	//
+	//CMD setup : i.e. checkout
 	char buflen[10];
 	if( read(cfd, buflen, sizeof(buflen)) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
@@ -110,15 +157,15 @@ int main( int argc, char** argv ){
 	}
 
 	int len = charToInt((char*)buflen);	
-	printf("Number of bytes being recieved: %d\n", len);
-	//get message from client
+	printf("Number of bytes_cmd being recieved: %d\n", len);
+	//get cmd from client
 	char* bufread = (char*)malloc( len + 1 );	
 //	bufread[0] = '\0';
 	rdres = 1;
 	int i = 0;
 	while( rdres > 0 ){
 		rdres = read( cfd, bufread+i, len-i );
-		printf("rdres: %d\n", rdres);
+		printf("rdrescmd: %d\n", rdres);
 		if( rdres == -1 ){	
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 	exit(2);
@@ -126,12 +173,20 @@ int main( int argc, char** argv ){
 		i += rdres;
 	}	
 	bufread[len] = '\0';	
-	printf( "msg received from client: %s\n", bufread );
-	// call method to find the file
-//	tarfile( bufread );
-//	strcat( bufread, ".tgz\0" );
-	createProtocol( bufread, cfd ); /* creates and send protocol to client */
-	//createGzip();
+	printf( "cmd received from client: %s\n", bufread );
+	//free(bufread);
+	
+	/* if bufread  = checkout. do below checkoutproj(proj, cfd) */
+	if(strcmp(bufread, "checkout") == 0){
+		int retval = checkoutProj(cfd);
+		
+		if(retval == -1){
+			printf("Error: Project checkout failed.\n"); exit(2);	
+		}
+	}	
+		
+	//if bufread == checkout then create protocol
+//	createGzip();
 //	sendProtocol("./protocol.txt", cfd);
 //	destroyProtocolFile();	
 

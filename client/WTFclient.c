@@ -30,6 +30,111 @@
 */
 void configure( char*, char* );
 int charToInt( char* );
+int checkout (char *, int);
+
+int checkout (char * projname, int sd){
+	char num[10];
+	char * buffer = "checkout";
+	
+	sprintf( num, "%010d", strlen(buffer) );
+	//strcat( num, ":\0" );
+
+	//first send "checkout"
+	int wtres, rdres;
+	wtres = 1;
+	int i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, num+i, strlen(num)-i );
+		printf("wtres cmd_bytes: %d\n", wtres);
+		if ( wtres == -1){	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			return -1;
+		}	
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "number of bytes_cmd sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
+	// send "checkout"
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, buffer+i, strlen(buffer)-i );
+		if ( wtres == -1){        
+                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+               	}
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "cmd sent: %s\n" ANSI_COLOR_RESET, buffer );
+
+
+	// first send the number of projname bytes	
+	sprintf( num, "%010d", strlen(projname) );
+	
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, num+i, strlen(num)-i );
+		printf("wtres: %d\n", wtres);
+		if ( wtres == -1){	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			return -1;
+		}	
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
+	// send the data
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, projname+i, strlen(projname)-i );
+		if ( wtres == -1){        
+                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+               	}
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, projname );
+
+	
+	// reading the number of bytes in the buffer sent back
+	char buf2[10];
+	rdres = 1;
+	i = 0;
+	while( rdres > 0 ){	
+			rdres = read( sd, buf2+i, 10-i );
+			printf( "number of bytes read: %d\n", rdres );
+			if( rdres == -1 ){	
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        	close(sd); return -1;
+			}
+			i += rdres;
+	}
+	int bufflen = charToInt( (char*)buf2 );
+	printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
+	// reading the actual buffer
+	char* bufferbytes = (char*)malloc( bufflen + 1 );
+	bufferbytes[0] = '\0';
+	rdres = 1;
+	i = 0;
+	while( rdres > 0 ){
+		rdres = read( sd, bufferbytes+i, bufflen-i );
+
+		//printf("bufflen - i : %d\n", bufflen-i);
+		//printf( "number of bytes read: %d\n", rdres );
+		if( rdres == -1 ){
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+		}
+		i += rdres;
+	}
+		
+	bufferbytes[bufflen] = '\0';
+	printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
+	//call parsebuff here		
+	parseProtoc(&bufferbytes);
+	return 0;
+}
+
 
 int charToInt( char* numArr ){
         // used to decipher how many bytes are being sent so string issues stop arising
@@ -114,12 +219,13 @@ int main( int argc, char** argv ){
 
 		if( stat(configure_path, &file_stat ) == -1 ){
         	        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-               		return;
+               		exit(2);
        		}
        		if( (fd = open( configure_path, O_RDONLY)) == -1 ){
                 	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                	return;
+                	exit(2);
         	}
+
         	filebuff = (char*)malloc( file_stat.st_size+1 );
 		filebuff[0] = '\0';
 		rdres = 1;
@@ -127,9 +233,8 @@ int main( int argc, char** argv ){
 		//this doesnt have to be in a while loop, we're just reading from an file
         	while( rdres > 0 ){
 			rdres = read( fd, filebuff, file_stat.st_size  );
-			printf( "number of bytes read: %d\n", rdres );
-			if( rdres == -1 )
-        		{
+	//		printf( "number of bytes read: %d\n", rdres );
+			if( rdres == -1 ){
                 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 		return;
         		}
@@ -171,78 +276,36 @@ int main( int argc, char** argv ){
 		printf("Client connected to server!\n");
 
 		//send message to server
-		char* buffer = argv[1];
-		char num[10];
-		sprintf( num, "%010d", strlen(buffer) );
-		//strcat( num, ":\0" );
-		// first send the number of bytes
-		wtres = 1;
-		int i = 0;
-		while( wtres > 0 ){
-			wtres = write( sd, num+i, strlen(num)-i );
-			printf("wtres: %d\n", wtres);
-			if ( wtres == -1){	
-				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+		/* if( strcmp(argv[1], "checkout") == 0){
+ *			// call checkout
+ *			// must send "checkout" to server as well
+ *			// argv[2] should be project name to checkout
+ *			// .Manifest will be included in protocol sent over from server / no worries here
+ *			// checkout returns -1 if fail, 0 if success
+ *			// parseProtoc called after checkout returns.
+ *			// int checkout (char * projname);
+ *			// checkout sends "checkout" and projname to server	
+ * 		}
+ *
+ * 		*/
+	//	char* buffer = argv[1];
+
+		//check for commands here
+		if(strcmp(argv[1], "checkout") == 0){
+			int retval;
+			if( (retval = checkout(argv[2], sd)) == -1){
+				printf("Error. Project checkout failed.\n"); 
 				exit(2);
-			}	
-			i += wtres;
-		}
-		printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(buffer) );
-		// send the data
-		wtres = 1;
-		i = 0;
-		while( wtres > 0 ){
-			wtres = write( sd, buffer+i, strlen(buffer)-i );
-			if ( wtres == -1){        
-                        	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                        	exit(2);
-                	}
-			i += wtres;
-		}
-		printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, buffer );	
-		// reading the number of bytes in the buffer sent back
-		char buf2[10];
-		rdres = 1;
-		i = 0;
-		while( rdres > 0 ){	
-			rdres = read( sd, buf2+i, 10-i );
-			printf( "number of bytes read: %d\n", rdres );
-			if( rdres == -1 )
-			{	
-				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                        	close(sd); exit(2);
 			}
-			i += rdres;
+			
+			//parseProtoc here or nah just let checkout handle it		
 		}
-		int bufflen = charToInt( (char*)buf2 );
-		printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
-		// reading the actual buffer
-		char* bufferbytes = (char*)malloc( bufflen + 1 );
-		bufferbytes[0] = '\0';
-		rdres = 1;
-		i = 0;
-		while( rdres > 0 ){
-			rdres = read( sd, bufferbytes+i, bufflen-i );
-
-			//printf("bufflen - i : %d\n", bufflen-i);
-			//printf( "number of bytes read: %d\n", rdres );
-			if( rdres == -1 ){
-				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                        	exit(2);
-
-			}
-			i += rdres;
-		}
-		bufferbytes[bufflen] = '\0';
-		printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
-		//call parsebuff here		
-		parseProtoc(&bufferbytes);
-
+ 
 	
 		freeaddrinfo( result );
-		free( bufferbytes );
+//		free( bufferbytes );
 		free( configure_path );
-		free( filebuff );
+//		free( filebuff );
 	}
 	return 0;
 }
