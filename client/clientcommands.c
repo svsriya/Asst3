@@ -19,15 +19,18 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 typedef struct manifest{
+	char* projversion;
 	char* filepath;
-	int vnum;
+	char* vnum;
 	char* hash;
-	int onServer;
+	char* onServer;
+	char* removed;
 	struct manifest* next;
 }Manifest;
 
 char* searchProj( char* );
-Manifest* build( char* );
+void build( char*, Manifest** );
+void writeM( char*, Manifest* );
 void printM( Manifest* );
 char* hashcode( char* );
 void addM( char*, char* );
@@ -49,21 +52,16 @@ char* searchProj( char* projname )
         return projpath;
 }
 
-Manifest* build( char* projpath )
-{
-	char* manpath;
-	Manifest* head;
-	Manifest* ptr = head;
+void build( char* manpath, Manifest** head )
+{	// <filename><\t><v.#><\t><inserver><\t><removed><\t><hash><\n>
+	Manifest* ptr = *head;
 	struct stat file_stat;
 	int fd;
 	char* mbuffer;
 	char* line;
 	// 1. open the .Manifest file for the project
 	// need to build path for .Manifest
-	manpath = (char*)malloc( strlen(projpath) + strlen("/.Manifest") + 1 );
-	manpath[0] = '\0';
-	strcat( manpath, projpath );
-	strcat( manpath, "/.Manifest" );
+
 	if( stat( manpath, &file_stat ) == -1 )
 	{
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
@@ -80,23 +78,39 @@ Manifest* build( char* projpath )
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 return;
 	}
-	// 2. skip first line of the manifest and start adding to linked list
+	// 2. skip first two lines of the manifest and start adding to linked list
 	int i;
-	for( i = 0; mbuffer[i] != '\n'; i++ );
-	i++;	// pointing to first entry
-	while( i < strlen(mbuffer) )
+	char* projv;
+	char* token;
+	char s[3] = "\t\n";
+	projv = strtok( mbuffer, s );	//proj version
+	ptr = (Manifest*)malloc( sizeof(Manifest) );
+	ptr->projversion = projv;
+	token = strtok( NULL, s );
+        ptr->filepath = token;
+        ptr->vnum = strtok( NULL, s );
+        ptr->onServer = strtok( NULL, s );
+        ptr->removed = strtok( NULL, s );
+        ptr->hash = strtok( NULL, s );
+        token = strtok( NULL, s );
+	*head = ptr;
+	Manifest* newNode;
+	while( token != NULL )
 	{
-		ptr = (Manifest*)malloc( sizeof(Manifest) );
-		int len;
-		// gets entire line 
-		for( len = 0; mbuffer[len+i] != '\n'; len++ );
-		
-		
+		// first put in project version
+		newNode = (Manifest*)malloc( sizeof(Manifest) );
+		newNode->projversion = projv;
+		newNode->filepath = token;
+		newNode->vnum = strtok( NULL, s );
+		newNode->onServer = strtok( NULL, s );
+		newNode->removed = strtok( NULL, s );
+		newNode->hash = strtok( NULL, s );
+		token = strtok( NULL, s );
+		ptr->next = newNode;
+		ptr = ptr->next;
 	}
- 
-	free( mbuffer );
-	free( manpath );
-	return head;
+	ptr->next = NULL;
+	//free( mbuffer );
 }
 
 void printM( Manifest* head )
@@ -104,7 +118,7 @@ void printM( Manifest* head )
 	Manifest* ptr = head;
 	while( ptr != NULL )
 	{
-		printf( "%s\t%d\t%d\t%s\n", ptr->filepath, ptr->vnum, ptr->onServer, ptr->hash );
+		printf( "%s\t%s\t%s\t%s\t%s\n", ptr->filepath, ptr->vnum, ptr->onServer, ptr->removed, ptr->hash );
 		ptr = ptr->next;		
 	}
 }
@@ -145,13 +159,29 @@ void addM( char* projname, char* filename )
 {
 	//check that project exists on client
 	char* projpath = searchProj( projname );
+	char* manpath;
+	Manifest* head = NULL;
 	if( projpath == NULL )
 	{
 		printf( ANSI_COLOR_RED "Error: project does not locally exist\n" ANSI_COLOR_RESET );
 		return;
 	}
 	printf( ANSI_COLOR_YELLOW "Project locally found!\n" ANSI_COLOR_RESET );
+	manpath = (char*)malloc( strlen(projpath) + strlen("/.Manifest") + 1 );
+	manpath[0] = '\0';
+	strcat( manpath, projpath );
+	strcat( manpath, "/.Manifest" );
+	build( manpath, &head );
 	//check the linked list to see if the entry is already in the manifest
+	Manifest* ptr;
+	Manifest* prev;
+	while( ptr != NULL )
+	{
+		if( 
+	}
+
+	freeManifest( head );
+	free(manpath);
 }
 
 void freeManifest( Manifest* head )
@@ -161,8 +191,6 @@ void freeManifest( Manifest* head )
 	{
 		Manifest* prev = ptr;
 		ptr = ptr->next;
-		free(prev->hash);
-		free(prev->filepath);
 		free(prev);
 	}
 }
@@ -170,12 +198,9 @@ void freeManifest( Manifest* head )
 int main( int argc, char** argv )
 {
 	char* filepath = argv[1];
-	char* hash = hashcode( filepath );
-        
-        printf( "%s", hash );
-        printf( "\n" );
-	free(hash);
-	//char* result = searchProj( filepath );
-	//printf( "res = %s\n", result );
+	Manifest* head = NULL;
+	build( filepath, &head );
+	printM( head );
+	freeManifest( head ); 
 	return 0; 
 }
