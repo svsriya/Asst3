@@ -88,14 +88,9 @@ Manifest* build( char* projpath )
 	{
 		ptr = (Manifest*)malloc( sizeof(Manifest) );
 		int len;
-		//filepath
-		for( len = 0; mbuffer[len] != '\t'; len++ );
-		ptr->filepath = (char*)malloc( len + 1 );
-		strncpy( ptr->filepath, &mbuffer[i], len );
-		ptr->filepath[len] = '\0';
-		i += len+1;
-		//v. number
-		for( len = 0; mbuffer[len+i] != '\t'; len++ ); 
+		// gets entire line 
+		for( len = 0; mbuffer[len+i] != '\n'; len++ );
+		
 		
 	}
  
