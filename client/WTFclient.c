@@ -14,6 +14,8 @@
 
 #include "parseprotoc.c"
 #include "parseprotoc.h"
+#include "clientcommands.h"
+#include "clientcommands.c"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -191,8 +193,14 @@ int main( int argc, char** argv ){
 	if( strcmp(command, "configure") == 0 ){ // create .configure file
 		configure( argv[2], argv[3] );  
 	}
+	else if( strcmp( command, "add" ) == 0 ){	// adds the filepath to the .Manifest
+		addM( argv[2], argv[3] );
+	}
+	else if( strcmp( command, "remove" ) == 0 ){	// marks the filepath for removal in .Manifest
+		removeM( argv[2], argv[3] );
+	}
 	else{ // temporarily just testing that connecting to server works
-	
+		// contains all commands that require connecting to the server
 		char* configure_path;
 		int fd;
 		struct addrinfo hints;

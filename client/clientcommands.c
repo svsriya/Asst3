@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include <openssl/sha.h>
 #include <fcntl.h>
-
+#include "clientcommands.h"
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -43,9 +43,9 @@ char* searchProj( char* projname )
         DIR* dirp;
         char* projpath;
 
-        projpath = (char*)malloc( 2 + strlen(projname) + 1 );
+        projpath = (char*)malloc( 9 + strlen(projname) + 1 );
         projpath[0] = '\0';
-	strcat( projpath, "./" );
+	strcat( projpath, "./client/" );
         strcat( projpath, projname );
 
         if( (dirp = opendir(projpath)) == NULL )
@@ -222,7 +222,11 @@ void addM( char* projname, char* filename )
 		{
 			//file already exists so update the hash
 			ptr->hash = hashcode(filename);
-			if( strcmp(ptr->removed, "1") == 0 ) ptr->removed = "0";
+			if( strcmp(ptr->removed, "1") == 0 ) 
+			{
+				ptr->removed = "0";
+				printf( ANSI_COLOR_YELLOW "File has been added to .Manifest\n" ANSI_COLOR_RESET );
+			}
 			else printf( ANSI_COLOR_RED "Warning: file already exists in .Manifest, hashcode has been updated\n" ANSI_COLOR_RESET );
 			writeM( manpath, head );
 		//	printM( head );
@@ -296,7 +300,7 @@ void freeManifest( Manifest* head )
 		free(prev);
 	}
 }
-
+/*
 int main( int argc, char** argv )
 {
 	char* projname = argv[2];
@@ -306,4 +310,4 @@ int main( int argc, char** argv )
 	else if( strcmp( argv[1], "remove" ) == 0 )
 		removeM( projname, filepath ); 
 	return 0; 
-}
+}*/
