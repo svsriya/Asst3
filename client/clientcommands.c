@@ -33,8 +33,8 @@ void build( char*, Manifest** );
 void writeM( char*, Manifest* );
 void printM( Manifest* );
 char* hashcode( char* );
-void addM( char*, char* );
-void removeM( char*, char* );
+int addM( char*, char* );
+int removeM( char*, char* );
 void freeManifest( Manifest* );
 
 // returns the  path of the project if it exists, otherwise returns null
@@ -179,11 +179,13 @@ char* hashcode( char* filepath )
         if( (fd = open( filepath, O_RDONLY ) ) == -1 )
         {
                 printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
-        }
+        	return NULL;
+	}
         if( read( fd, filebuff, file_stat.st_size ) == -1 )
         {
                 printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
-        }
+        	return NULL;
+	}
         hash = SHA256( filebuff, strlen(filebuff),0);
 	 
 	char* result = (char*)malloc( (strlen(hash)*2) + 1);
@@ -196,7 +198,7 @@ char* hashcode( char* filepath )
 	return result;
 } 
 
-void addM( char* projname, char* filename )
+int addM( char* projname, char* filename )
 {
 	//check that project exists on client
 	char* projpath = searchProj( projname );
@@ -205,7 +207,7 @@ void addM( char* projname, char* filename )
 	if( projpath == NULL )
 	{
 		printf( ANSI_COLOR_RED "Error: project does not locally exist\n" ANSI_COLOR_RESET );
-		return;
+		return -1;
 	}
 	printf( ANSI_COLOR_YELLOW "Project locally found!\n" ANSI_COLOR_RESET );
 	manpath = (char*)malloc( strlen(projpath) + strlen("/.Manifest") + 1 );
@@ -225,6 +227,7 @@ void addM( char* projname, char* filename )
 			if( strcmp(ptr->removed, "1") == 0 ) 
 			{
 				ptr->removed = "0";
+				ptr->onServer = "0";
 				printf( ANSI_COLOR_YELLOW "File has been added to .Manifest\n" ANSI_COLOR_RESET );
 			}
 			else printf( ANSI_COLOR_RED "Warning: file already exists in .Manifest, hashcode has been updated\n" ANSI_COLOR_RESET );
@@ -240,7 +243,7 @@ void addM( char* projname, char* filename )
 	ptr = (Manifest*)malloc( sizeof(Manifest) );
 	ptr->projversion = prev->projversion;
 	ptr->filepath = filename;
-	ptr->vnum = "1.0";
+	ptr->vnum = "1";
 	ptr->hash = hashcode(filename);
 	ptr->onServer = "0";
 	ptr->removed = "0";
@@ -253,7 +256,7 @@ void addM( char* projname, char* filename )
 	printf( ANSI_COLOR_YELLOW "File has been added to .Manifest\n" ANSI_COLOR_RESET );
 }
 
-void removeM( char* projname, char* filename )
+int removeM( char* projname, char* filename )
 {
 	//check that project exists on client
 	char* projpath = searchProj( projname );
@@ -262,7 +265,7 @@ void removeM( char* projname, char* filename )
 	if( projpath == NULL )
 	{
 		printf( ANSI_COLOR_RED "Error: project does not locally exist\n" ANSI_COLOR_RESET );
-		return;
+		return -1;
 	}
 	printf( ANSI_COLOR_YELLOW "Project locally found!\n" ANSI_COLOR_RESET );
 	manpath = (char*)malloc( strlen(projpath) + strlen("/.Manifest") + 1 );
@@ -287,7 +290,7 @@ void removeM( char* projname, char* filename )
 		ptr = ptr->next;
 	}
 	printf( ANSI_COLOR_RED "Error: file does not exist\n" ANSI_COLOR_RESET );
-
+	return -1;
 }
 
 void freeManifest( Manifest* head )

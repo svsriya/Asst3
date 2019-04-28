@@ -159,10 +159,10 @@ void configure( char* ip, char* port ){
 	char* strbuff;
 	int fd;
 
-	configure_path = (char*)malloc(13*sizeof(char));
+	configure_path = (char*)malloc(strlen("./client/.configure") + 1 );
 	configure_path[0] = '\0';
-	strcpy( configure_path, "./.configure" );
-	configure_path[12] = '\0';		
+	strcpy( configure_path, "./client/.configure" );
+	configure_path[19] = '\0';		
 	if( (fd = open( configure_path, O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1 ){
         	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
       	}
@@ -194,10 +194,18 @@ int main( int argc, char** argv ){
 		configure( argv[2], argv[3] );  
 	}
 	else if( strcmp( command, "add" ) == 0 ){	// adds the filepath to the .Manifest
-		addM( argv[2], argv[3] );
+		if( addM( argv[2], argv[3] ) == -1 )
+		{
+			printf( "add has failed. Program will exit\n" );
+			exit(2);
+		}
 	}
 	else if( strcmp( command, "remove" ) == 0 ){	// marks the filepath for removal in .Manifest
-		removeM( argv[2], argv[3] );
+		if( removeM( argv[2], argv[3] ) == -1 )
+		{
+			printf( "remove has failed. Program will exit\n" );
+			exit(2);
+		}
 	}
 	else{ // temporarily just testing that connecting to server works
 		// contains all commands that require connecting to the server
@@ -220,10 +228,10 @@ int main( int argc, char** argv ){
 		hints.ai_socktype = SOCK_STREAM;
 		
 		//open .configure to get ip and port
-		configure_path = (char*)malloc(13*sizeof(char));
+		configure_path = (char*)malloc(strlen("./client/.configure")+1);
 		configure_path[0] = '\0';
-                strcpy( configure_path, "./.configure" );
-                configure_path[12] = '\0';
+                strcpy( configure_path, "./client/.configure" );
+                configure_path[19] = '\0';
 
 		if( stat(configure_path, &file_stat ) == -1 ){
         	        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
@@ -308,7 +316,33 @@ int main( int argc, char** argv ){
 			
 			//parseProtoc here or nah just let checkout handle it		
 		}
- 
+		else if( strcmp( argv[1], "history" ) == 0 ){
+			//call history
+		} 	
+		else if( strcmp( argv[1], "update" ) == 0 ){
+			// call update
+		}
+		else if( strcmp( argv[1], "upgrade" ) == 0 ){
+                        // call upgrade
+                }
+		else if( strcmp( argv[1], "commit" ) == 0 ){
+			// call commit
+		}
+		else if( strcmp( argv[1], "push" ) == 0 ){
+                        // call push
+                }
+		else if( strcmp( argv[1], "rollback" ) == 0 ){
+			// call rollback
+		}
+		else if( strcmp( argv[1], "currentversion" ) == 0 ){
+                        // call currentversion
+                }
+		else if( strcmp( argv[1], "create" ) == 0 ){
+                        // call create
+                }
+		else if( strcmp( argv[1], "destroy" ) == 0 ){
+                        // call destroy
+                }
 	
 		freeaddrinfo( result );
 //		free( bufferbytes );

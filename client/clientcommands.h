@@ -1,2 +1,2 @@
-void addM( char*, char* );
-void removeM( char*, char* );
+int addM( char*, char* );
+int removeM( char*, char* );

@@ -183,8 +183,12 @@ int main( int argc, char** argv ){
 		if(retval == -1){
 			printf("Error: Project checkout failed.\n"); exit(2);	
 		}
+	}
+	else if( strcmp( bufread, "history" ) == 0 )
+	{
+		//call history
 	}	
-		
+	
 	//if bufread == checkout then create protocol
 //	createGzip();
 //	sendProtocol("./protocol.txt", cfd);
