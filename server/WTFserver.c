@@ -33,6 +33,45 @@
 
 int charToInt( char* );
 int checkoutProj(int);
+int projHistory(int);
+
+int projHistory( int cfd )
+{
+	//get bytesname
+	char buflen[10];
+	if( read(cfd, buflen, sizeof(buflen)) == -1){
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
+		return -1;	
+	}
+
+	int len = charToInt((char*)buflen);	
+	printf("Number of bytes_projname being recieved: %d\n", len);
+
+	//get projname from client
+	char* bufread2 = (char*)malloc( len + 1 );	
+//	bufread[0] = '\0';
+	int rdres = 1;
+	int i = 0;
+	while( rdres > 0 ){
+		rdres = read( cfd, bufread2+i, len-i );
+		printf("rdres: %d\n", rdres);
+		if( rdres == -1 ){	
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                	return -1;
+		}
+		i += rdres;
+	}	
+	bufread2[len] = '\0';	
+	printf( "projname received from client: %s\n", bufread2);
+	// need to send projname/history
+	char* historypath = (char*)malloc( len + 9 );
+	historypath[0] = '\0';
+	strcat( historypath, bufread2 );
+	strcat( historypath, "/history" );
+	// send to protocol
+	createProtocol( historypath, cfd );
+	return 0;
+}
 
 int checkoutProj(int cfd){
 
@@ -187,6 +226,9 @@ int main( int argc, char** argv ){
 	else if( strcmp( bufread, "history" ) == 0 )
 	{
 		//call history
+		if( projHistory( cfd ) == -1 ){
+			printf( "Error: history command failed.\n" ); exit(2);
+		}
 	}	
 	
 	//if bufread == checkout then create protocol

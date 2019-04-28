@@ -29,10 +29,11 @@ void commit( char* );
 void update( char* );
 
 void commit( char* projname )
-{
+{	//first check that projpath exists
 	char* projpath = searchProj( projname );
 	if( projpath == NULL ){
 		printf( ANSI_COLOR_RED "Error: project not found in client\n" ANSI_COLOR_RESET );
 		return; //EXIT NICELY 
 	}
+	//check whether 
 }

@@ -33,7 +33,107 @@
 void configure( char*, char* );
 int charToInt( char* );
 int checkout (char *, int);
+int history( char*, int );
 
+int history( char* projname, int sd )
+{
+	char num[10];
+	char* buffer = "history";
+	int wtres, rdres;
+	sprintf( num, "%010d", strlen(buffer) );
+	wtres = 1;
+	int i = 0;
+	// send the number of bytes in "history" command
+	while( wtres > 0 )
+	{	
+		wtres = write( sd, num+i, strlen(num)-i );
+		printf("wtres cmd_bytes: %d\n", wtres);
+                if ( wtres == -1){
+                        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        return -1;
+                }
+                i += wtres;
+        }
+        printf( ANSI_COLOR_MAGENTA "number of bytes_cmd sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
+	// send the "history" command
+	wtres = 1;
+        i = 0;
+        while( wtres > 0 ){
+                wtres = write( sd, buffer+i, strlen(buffer)-i );
+                if ( wtres == -1){
+                        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        return -1;
+                }
+                i += wtres;
+        }
+        printf( ANSI_COLOR_MAGENTA "cmd sent: %s\n" ANSI_COLOR_RESET, buffer );
+	// send the number of bytes in projname 
+	sprintf( num, "%010d", strlen( projname ));
+	 wtres = 1;
+        i = 0;
+        while( wtres > 0 ){
+                wtres = write( sd, num+i, strlen(num)-i );
+                printf("wtres: %d\n", wtres);
+                if ( wtres == -1){
+                        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        return -1;
+                }
+                i += wtres;
+        }
+        printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
+	//send the projname 
+	wtres = 1;
+        i = 0;
+        while( wtres > 0 ){
+                wtres = write( sd, projname+i, strlen(projname)-i );
+                if ( wtres == -1){
+                        printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        return -1;
+                }
+                i += wtres;
+        }
+        printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, projname );	
+	// reading the number of bytes in the buffer sent back
+	char buf2[10];
+	rdres = 1;
+	i = 0;
+	while( rdres > 0 ){	
+			rdres = read( sd, buf2+i, 10-i );
+			printf( "number of bytes read: %d\n", rdres );
+			if( rdres == -1 ){	
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        	close(sd); return -1;
+			}
+			i += rdres;
+	}
+	int bufflen = charToInt( (char*)buf2 );
+	printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
+	// reading the actual buffer
+	char* bufferbytes = (char*)malloc( bufflen + 1 );
+	bufferbytes[0] = '\0';
+	rdres = 1;
+	i = 0;
+	while( rdres > 0 ){
+		rdres = read( sd, bufferbytes+i, bufflen-i );
+
+		//printf("bufflen - i : %d\n", bufflen-i);
+		//printf( "number of bytes read: %d\n", rdres );
+		if( rdres == -1 ){
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+		}
+		i += rdres;
+	}
+		
+	bufferbytes[bufflen] = '\0';
+	printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
+	//call parsebuff here		
+	parseProtoc(&bufferbytes);
+	// now history exists!
+	// need to print out history
+	
+	return 0;
+}
 int checkout (char * projname, int sd){
 	char num[10];
 	char * buffer = "checkout";
@@ -67,11 +167,8 @@ int checkout (char * projname, int sd){
 		i += wtres;
 	}
 	printf( ANSI_COLOR_MAGENTA "cmd sent: %s\n" ANSI_COLOR_RESET, buffer );
-
-
 	// first send the number of projname bytes	
 	sprintf( num, "%010d", strlen(projname) );
-	
 	wtres = 1;
 	i = 0;
 	while( wtres > 0 ){
@@ -96,8 +193,6 @@ int checkout (char * projname, int sd){
 		i += wtres;
 	}
 	printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, projname );
-
-	
 	// reading the number of bytes in the buffer sent back
 	char buf2[10];
 	rdres = 1;
@@ -318,6 +413,9 @@ int main( int argc, char** argv ){
 		}
 		else if( strcmp( argv[1], "history" ) == 0 ){
 			//call history
+			if( history(argv[2], sd) == -1 ){
+				printf( "Error: history command failed.\n" );
+			}
 		} 	
 		else if( strcmp( argv[1], "update" ) == 0 ){
 			// call update
