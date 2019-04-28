@@ -127,11 +127,39 @@ int history( char* projname, int sd )
 		
 	bufferbytes[bufflen] = '\0';
 	printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
-	//call parsebuff here		
+	//call parsebuff here, should be in ./history		
 	parseProtoc(&bufferbytes);
 	// now history exists!
 	// need to print out history
-	
+	struct stat file_stat;
+	int hfd;
+	char* histbuff;
+	char* histpath = "./history";
+	if( stat(histpath, &file_stat ) == -1 )
+        {
+                printf( ANSI_COLOR_RED "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                return -1;
+        }
+        if( (hfd = open( histpath, O_RDONLY)) == -1 )
+        {
+                printf( ANSI_COLOR_RED "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                return;
+        }
+        histbuff = (char*)malloc( file_stat.st_size+1 );
+        if( read( hfd, histbuff, file_stat.st_size  ) == -1 )
+        {
+                printf( ANSI_COLOR_RED "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                return;
+        }	//print history
+	printf( "%s\n", histbuff );
+	free(histbuff);
+	free(bufferbytes);
+	//remove history
+	char* cmd = "rm -rf ./history";
+	if( system(cmd) == -1 )
+	{
+		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+	}
 	return 0;
 }
 int checkout (char * projname, int sd){

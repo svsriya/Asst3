@@ -64,12 +64,14 @@ int projHistory( int cfd )
 	bufread2[len] = '\0';	
 	printf( "projname received from client: %s\n", bufread2);
 	// need to send projname/history
-	char* historypath = (char*)malloc( len + 9 );
+	char* historypath = (char*)malloc( len + 14 );
 	historypath[0] = '\0';
+	strcat( historypath, "root/");
 	strcat( historypath, bufread2 );
 	strcat( historypath, "/history" );
 	// send to protocol
 	createProtocol( historypath, cfd );
+	free( historypath );
 	return 0;
 }
 
@@ -104,7 +106,13 @@ int checkoutProj(int cfd){
 	// call method to find the file
 //	tarfile( bufread );
 //	strcat( bufread, ".tgz\0" );
-	createProtocol( bufread2, cfd ); /* creates and send protocol to client */
+	char* path = (char*)malloc( len + 6 );
+	path[0] = '\0';
+	strcat( path, "root/" );
+	strcat( path, bufread2 );
+	createProtocol( path, cfd ); /* creates and send protocol to client */
+	free( path );
+	free( bufread2 );
 	return 0;
 }
 
