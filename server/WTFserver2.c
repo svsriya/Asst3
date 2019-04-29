@@ -33,6 +33,47 @@
 
 int charToInt( char* );
 int checkoutProj(int);
+int projHistory(int);
+
+int projHistory( int cfd )
+{
+	//get bytesname
+	char buflen[10];
+	if( read(cfd, buflen, sizeof(buflen)) == -1){
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
+		return -1;	
+	}
+
+	int len = charToInt((char*)buflen);	
+	printf("Number of bytes_projname being recieved: %d\n", len);
+
+	//get projname from client
+	char* bufread2 = (char*)malloc( len + 1 );	
+//	bufread[0] = '\0';
+	int rdres = 1;
+	int i = 0;
+	while( rdres > 0 ){
+		rdres = read( cfd, bufread2+i, len-i );
+		printf("rdres: %d\n", rdres);
+		if( rdres == -1 ){	
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                	return -1;
+		}
+		i += rdres;
+	}	
+	bufread2[len] = '\0';	
+	printf( "projname received from client: %s\n", bufread2);
+	// need to send projname/history
+	char* historypath = (char*)malloc( len + 14 );
+	historypath[0] = '\0';
+	strcat( historypath, "root/");
+	strcat( historypath, bufread2 );
+	strcat( historypath, "/history" );
+	// send to protocol
+	createProtocol( historypath, cfd );
+	free( historypath );
+	return 0;
+}
 
 int checkoutProj(int cfd){
 
@@ -65,7 +106,13 @@ int checkoutProj(int cfd){
 	// call method to find the file
 //	tarfile( bufread );
 //	strcat( bufread, ".tgz\0" );
-	createProtocol( bufread2, cfd ); /* creates and send protocol to client */
+	char* path = (char*)malloc( len + 6 );
+	path[0] = '\0';
+	strcat( path, "root/" );
+	strcat( path, bufread2 );
+	createProtocol( path, cfd ); /* creates and send protocol to client */
+	free( path );
+	free( bufread2 );
 	return 0;
 }
 
@@ -183,8 +230,15 @@ int main( int argc, char** argv ){
 		if(retval == -1){
 			printf("Error: Project checkout failed.\n"); exit(2);	
 		}
+	}
+	else if( strcmp( bufread, "history" ) == 0 )
+	{
+		//call history
+		if( projHistory( cfd ) == -1 ){
+			printf( "Error: history command failed.\n" ); exit(2);
+		}
 	}	
-		
+	
 	//if bufread == checkout then create protocol
 //	createGzip();
 //	sendProtocol("./protocol.txt", cfd);
