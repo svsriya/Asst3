@@ -1,5 +1,0 @@
-senddir:-4:6:./root:-4:12:./root/proj1:-3:22:./root/proj1/hello.txt:21:goodbyeeeeeeeeeefren
-:-3:21:./root/proj1/test.txt:28:helloooooohhihihihihihihihi
-:sendfile:-3:12:./things.txt:46:hi this is mahwish how are you today
-i'm good
-:

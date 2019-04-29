@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include "zpipe.c"
 #include "createprotocol.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -21,35 +22,79 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-void createProtocol (char *, int);
-int openrequested (char *);
+/*//#include <stdio.h>
+//#include <string.h>
+#include <assert.h>
+//#include "zlib.h"
+#include <bsd/unistd.h>
+
+
+#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
+#  include <fcntl.h>
+#  include <io.h>
+#  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
+#else
+#  define SET_BINARY_MODE(file)
+#endif
+
+#define CHUNK 16384
+*/
+
+
+
+
+void createProtocol (char **, int);
+int openrequested (char **);
 void sendProtoco();
 void destroyProtocolFile();
-void traverseDir(char *);
+void traverseDir(char **);
 void createGzip();
 
 
 
 void createGzip(){
 
+	printf("trying to create gzip\n");
 	//open up gz file
-	char * gzpath = "./protocol.txt.gz";
-	char * cmd = "./gzappend protocol.txt.gz protocol.txt";
+	char * gzpath = (char *)malloc(sizeof(char)*19);
+//	char * path = "./protocol.txt";
+	gzpath[0]='\0';
+	strcat(gzpath, "./protocolzip.txt\0");
+	//strcat(gzpath,"\0");
+	//char * cmd = "./gzappend protocol.txt.gz protocol.txt";
+	printf("GZPATH: %s\n", gzpath);
+	FILE * fd_pt;
 
-	int fd_gz;
-
-	if( (fd_gz = open(gzpath, O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
+	if( (fd_pt = fopen("./protocol.txt", "r")) == NULL){
 		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
 	}
 
-	if( (system(cmd)) == -1){
-		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); return; 
+	int fd_gz;
+	if((fd_gz = open(gzpath, O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1){
+		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
+	}	
+
+	FILE * fd_gzz;
+	if( (fd_gzz = fopen(gzpath, "r")) == NULL){
+		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
 	}
+
+//	setmode(fileno(fd_pt), "b");
+//	setmode(fileno(fd_gzz), "b");
+
+
+	int res = def(fd_pt, fd_gzz, -1);
+
+	fclose(fd_pt); fclose(fd_gzz);
+	printf("res of def: %d\n", res);
+	free(gzpath);
+	return;
+
 }
 
 
-void traverseDir( char * path){
-	DIR * dirp = opendir(path);
+void traverseDir( char ** path){
+	DIR * dirp = opendir(*path);
 	int fd;
 	struct dirent * dp;
 	struct stat filestat;
@@ -65,9 +110,9 @@ void traverseDir( char * path){
 
 	while( (dp = readdir(dirp)) != NULL ){
 		printf("dirp name: %s\n", dp->d_name);
-		char * tmp = malloc(strlen(path) + strlen(dp->d_name) +1 +1);
+		char * tmp = malloc(strlen(*path) + strlen(dp->d_name) +1 +1);
 		tmp[0] = '\0';
-		snprintf(tmp, strlen(path) + strlen(dp->d_name) +1 +1, "%s/%s",path, dp->d_name);
+		snprintf(tmp, strlen(*path) + strlen(dp->d_name) +1 +1, "%s/%s",*path, dp->d_name);
 		if(stat(tmp, &filestat) == -1){
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 		}else{
@@ -93,7 +138,7 @@ void traverseDir( char * path){
 					free(append); free(tmp); exit(2);
 				}
 				free(append);
-				traverseDir(tmp);
+				traverseDir(&tmp);
 
 			}else{ //file encountered
 				//append "-3:bytesname:name:bytescontent:content:" to protocol
@@ -159,32 +204,36 @@ void destroyProtocolFile(){
 	}
 }
 
-int openrequested (char * path){
+int openrequested (char ** path){
+	
+	//printf("requested_path: %s\n, path");	
 	DIR * dirp;
 	int fd;
 	struct dirent * dp;
 	struct stat filestat;
-	
+
+	printf("requested_path: %s\n",*path);	
 	printf("entered openrequested!\n");
 	//create protocol file to append to --> will be destroyed once delivered to client
 	int pfd;
 	char* protocpath = "./protocol.txt";
 	if( (pfd = open(protocpath, O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+		exit(2);
 	}
 
-	if( (dirp = opendir(path)) == NULL){//tried to open directory failed
+	if( (dirp = opendir(*path)) == NULL){//tried to open directory failed
 		if(errno = ENOTDIR){
-			fd = open(path, O_RDONLY);
+			fd = open(*path, O_RDONLY);
 			if(fd == -1){
 				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			}else{  //file successfully opened
-				if(stat(path, &filestat) == -1){
+				if(stat(*path, &filestat) == -1){
 					( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 				}else{ // path sent in was a file. create the protocol
 					//get filename bytes
 					char bytesname[10];
-					sprintf( bytesname, "%d", strlen(path) );
+					sprintf( bytesname, "%d", strlen(*path) );
 					
 					//get file bytes data
 					char bytesdata[10];
@@ -200,12 +249,12 @@ int openrequested (char * path){
 					}
 
 					//NOW WRITE TO PROTOCOLFILE!!!!
-					char * append = malloc(9 + 3 + strlen(bytesname)+1 + strlen(path)+1 + strlen(bytesdata)+1 + strlen(buf)+1+1);
+					char * append = malloc(9 + 3 + strlen(bytesname)+1 + strlen(*path)+1 + strlen(bytesdata)+1 + strlen(buf)+1+1);
 					append[0]= '\0';
 					strcat( append, "sendfile:");
 					strcat( append, "-3:");
 					strcat( append, bytesname); strcat (append, ":");
-					strcat( append, path); strcat(append, ":");
+					strcat( append, *path); strcat(append, ":");
 					strcat( append, bytesdata); strcat(append, ":");
 					strcat( append, buf); strcat(append, ":");	
 					
@@ -236,15 +285,15 @@ int openrequested (char * path){
 
 		printf("client requested a directory!\n");
 		char bytesname[10];
-		sprintf( bytesname, "%d", strlen(path) );
+		sprintf( bytesname, "%d", strlen(*path) );
 					
 		//NOW WRITE TO PROTOCOLFILE!!!!
-		char * append = malloc(8 + 3 + strlen(bytesname)+1 + strlen(path)+1 +1);
+		char * append = malloc(8 + 3 + strlen(bytesname)+1 + strlen(*path)+1 +1);
 		append[0]= '\0';
 		strcat( append, "senddir:");
 		strcat( append, "-4:");
 		strcat( append, bytesname); strcat (append, ":");
-		strcat( append, path); strcat(append, ":");
+		strcat( append, *path); strcat(append, ":");
 				
 		printf("append_dir: %s\n", append);
 
@@ -266,8 +315,10 @@ int openrequested (char * path){
 }
 
 
-void createProtocol (char * path, int sockd){
-	int openres = openrequested (path);	
+void createProtocol (char ** path, int sockd){
+	printf("pATHO: %s\n", *path);
+	int openres = openrequested (path);
+	printf("openres done\n");	
 	struct stat filestat;
 
 	int pfd;
