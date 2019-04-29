@@ -1,6 +1,6 @@
-void createProtocol (char *, int);
-int openrequested (char *);
+void createProtocol (char **, int);
+int openrequested (char **);
 void sendProtocol();
 void destroyProtocolFIle();
-void traverseDir(char *);
+void traverseDir(char **);
 void createGzip();
