@@ -27,7 +27,43 @@
 
 int commit( char* );
 int update( char* );
+Manifest* createLive( Manifest* );
 
+Manifest* createLive( Manifest* client_man ) // generates the live hashcodes for each file in manifest
+{
+	Manifest* live;
+	Manifest* lptr;
+	live = (Manifest*)malloc(sizeof(Manifest));
+	live->projversion = client_man->projversion;
+	live->filepath = client_man->filepath;
+	live->vnum = client_man->vnum;		// increment if hash is different
+	live->hash = client_man->filepath;	// compute new hash
+	live->onServer = client_man->onServer;
+	live->removed = client_man->removed;
+	lptr = live;
+	Manifest* cptr;
+	for( cptr = client_man->next; cptr != NULL; cptr = cptr->next )
+	{
+		Manifest* newnode = (Manifest*)malloc(sizeof(Manifest));
+		newnode->projversion = cptr->projversion;
+		newnode->filepath = cptr->filepath;
+		newnode->onServer = client_man->onServer;
+		newnode->removed = client_man->removed;
+		newnode->hash = hashcode(newnode->filepath);
+		if( strcmp( newnode->hash, client_man->hash ) != 0 )
+		{	// new hash means new version
+			int num = atoi(client_man->vnum)+1;
+			char n[10];
+			sprintf( n, "%d", num );
+			newnode->vnum = n;	
+		}
+		else newnode->vnum = client_man->vnum;
+		lptr->next = newnode;
+		lptr = lptr->next;
+	}	
+	printM(live);
+	return live;
+}
 int commit( char* projname )
 {	//first check that projpath exists
 	char* projpath = searchProj( projname );
@@ -96,6 +132,8 @@ int commit( char* projname )
                 printf( ANSI_COLOR_RED "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 return -1;
         }
+
+	// create the linked lists for manifests and live 
 	Manifest* s_man;
 	Manifest* c_man;
 	Manifest* live;
@@ -105,8 +143,16 @@ int commit( char* projname )
 	{
 		printf( "Error: project is not up to date. Please run update on your project before running commit.\n" );
 		// SEND FAIL TO THE SERVER
+		freeManifest(s_man);
+		freeManifest(c_man);
+		free(cman);
 		return -1;
 	}
+	live = createLive( c_man );
+	freeManifest(live);
+	freeManifest(s_man);
+	freeManifest(c_man);
+	free(cman);
 	return 0;
 }
 
