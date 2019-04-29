@@ -33,10 +33,16 @@ void createDir(int subdir_size, char ** subdir_name){
 	path[0] = '\0';
 	snprintf(path, subdir_size+1, *subdir_name);
 
+	char * path2 = malloc(subdir_size +1);
+	path2[0] = '\0';
+	snprintf(path2, subdir_size+1, *subdir_name);
 
+	path = path+7;
+	path2 = path2+7;
 
-	char * dir = dirname(*subdir_name);
-	char * base = basename(path);
+	
+	char * dir = dirname(path);
+	char * base = basename(path2);
 
 	printf(ANSI_COLOR_CYAN "dir: %s base: %s\n"  ANSI_COLOR_RESET, dir, base);
 	
@@ -51,21 +57,30 @@ void createDir(int subdir_size, char ** subdir_name){
 	mkdir(base, S_IRUSR | S_IWUSR | S_IXUSR);
 
 	chdir(maindir);
-	free(maindir);
+	free(maindir); //free(path); free(path2);
 	return;
 }
 
 void createFile(int filename_size, char ** filename, int filedata_size, char ** filedata){
 
+	
 	char * path = malloc(filename_size +1);
 	path[0] = '\0';
 	snprintf(path, filename_size+1, *filename);
 
+	char * path2 = malloc(filename_size +1);
+	path2[0] = '\0';
+	snprintf(path2, filename_size+1, *filename);
 
-	char * dir = dirname(*filename);
-	char * base = basename(path);
+	path = path+7;
+	path2 = path2+7;
 	
-	printf(ANSI_COLOR_YELLOW "dir: %s base: %s\n"  ANSI_COLOR_RESET, dir, base);
+	char * dir = dirname(path);
+	char * base = basename(path2);
+
+
+	
+	printf(ANSI_COLOR_YELLOW "dir: %s basefile: %s\n"  ANSI_COLOR_RESET, dir, base);
 	char * maindir = malloc(sizeof(char)*10000);
 	maindir = getcwd(maindir, 10000);
 
@@ -83,7 +98,7 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 		exit(2);	
 	}	
 
-	//append data to file
+//append data to file
 	int write_res;
 	if((write_res = write(newfd, *filedata, strlen(*filedata))) == -1){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
@@ -91,8 +106,10 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 	}
 
 	chdir(maindir);
-	free(maindir);
+	free(maindir); 
 
+	//free(path); free(path2);
+	printf("done\n");
 
 }
 void parseProtoc (char ** buf){
@@ -116,7 +133,9 @@ void parseProtoc (char ** buf){
 		tok = strtok(NULL, ":"); // name of projdir
 		
 		//make projdir now
-		mkdir(tok, S_IRUSR | S_IWUSR | S_IXUSR);
+		
+		char * base = basename(tok);
+		mkdir(base, S_IRUSR | S_IWUSR | S_IXUSR);
 		
 		while(tok!=NULL){
 			//strtok it
@@ -193,7 +212,7 @@ void parseProtoc (char ** buf){
 		createFile(filename_size, &filename, filedata_size, &filedata);
 		free(filename); free(filedata);
 	
+	}else if((strcmp("Error", tok) == 0)){
+		printf("Error: project not found.\n"); exit(2);
 	}
-
-
 }

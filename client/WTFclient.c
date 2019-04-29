@@ -31,6 +31,233 @@
 void configure( char*, char* );
 int charToInt( char* );
 int checkout (char *, int);
+int create (char *, int);
+int currentversion(char *, int);
+
+int currentversion(char * projname, int){
+	char num[10];
+	char * buffer = "currentversion";
+	
+	sprintf( num, "%010d", strlen(buffer) );
+	//strcat( num, ":\0" );
+
+	//first send bytes "currentversion"
+	int wtres, rdres;
+	wtres = 1;
+	int i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, num+i, strlen(num)-i );
+		printf("wtres cmd_bytes: %d\n", wtres);
+		if ( wtres == -1){	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			return -1;
+		}	
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "number of bytes_cmd sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
+	// send "currverr"
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, buffer+i, strlen(buffer)-i );
+		if ( wtres == -1){        
+                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+               	}
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "cmd sent: %s\n" ANSI_COLOR_RESET, buffer );
+
+
+	// first send the number of projname bytes	
+	sprintf( num, "%010d", strlen(projname) );
+	
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, num+i, strlen(num)-i );
+		printf("wtres: %d\n", wtres);
+		if ( wtres == -1){	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			return -1;
+		}	
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
+	// send the data
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, projname+i, strlen(projname)-i );
+		if ( wtres == -1){        
+                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+               	}
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, projname );
+
+
+	//now see what server sends back
+	// reading the number of bytes in the buffer sent back
+	char buf2[10];
+	rdres = 1;
+	i = 0;
+	while( rdres > 0 ){	
+			rdres = read( sd, buf2+i, 10-i );
+			printf( "number of bytes read: %d\n", rdres );
+			if( rdres == -1 ){	
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        	close(sd); return -1;
+			}
+			i += rdres;
+	}
+	int bufflen = charToInt( (char*)buf2 );
+	printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
+	// reading the actual buffer
+	char* bufferbytes = (char*)malloc( bufflen + 1 );
+	bufferbytes[0] = '\0';
+	rdres = 1;
+	i = 0;
+	while( rdres > 0 ){
+		rdres = read( sd, bufferbytes+i, bufflen-i );
+
+		//printf("bufflen - i : %d\n", bufflen-i);
+		//printf( "number of bytes read: %d\n", rdres );
+		if( rdres == -1 ){
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+		}
+		i += rdres;
+	}
+		
+	bufferbytes[bufflen] = '\0';
+	//printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
+	if(strcmp(bufferbytes, 	"Error") == 0){
+		free(bufferbytes);
+		return -1;
+	}else{
+//		parseProtoc(&bufferbytes);				
+		printf( ANSI_COLOR_MAGENTA "%s\n" ANSI_COLOR_RESET, bufferbytes );
+		free(bufferbytes);
+	}
+
+	return 0;
+
+
+}
+
+
+int create (char * projname, int sd){
+	char num[10];
+	char * buffer = "create";
+	
+	sprintf( num, "%010d", strlen(buffer) );
+	//strcat( num, ":\0" );
+
+	//first send bytes "create"
+	int wtres, rdres;
+	wtres = 1;
+	int i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, num+i, strlen(num)-i );
+		printf("wtres cmd_bytes: %d\n", wtres);
+		if ( wtres == -1){	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			return -1;
+		}	
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "number of bytes_cmd sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
+	// send "create"
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, buffer+i, strlen(buffer)-i );
+		if ( wtres == -1){        
+                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+               	}
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "cmd sent: %s\n" ANSI_COLOR_RESET, buffer );
+
+
+	// first send the number of projname bytes	
+	sprintf( num, "%010d", strlen(projname) );
+	
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, num+i, strlen(num)-i );
+		printf("wtres: %d\n", wtres);
+		if ( wtres == -1){	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			return -1;
+		}	
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
+	// send the data
+	wtres = 1;
+	i = 0;
+	while( wtres > 0 ){
+		wtres = write( sd, projname+i, strlen(projname)-i );
+		if ( wtres == -1){        
+                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+               	}
+		i += wtres;
+	}
+	printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, projname );
+
+
+	//now see what server sends back
+	// reading the number of bytes in the buffer sent back
+	char buf2[10];
+	rdres = 1;
+	i = 0;
+	while( rdres > 0 ){	
+			rdres = read( sd, buf2+i, 10-i );
+			printf( "number of bytes read: %d\n", rdres );
+			if( rdres == -1 ){	
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        	close(sd); return -1;
+			}
+			i += rdres;
+	}
+	int bufflen = charToInt( (char*)buf2 );
+	printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
+	// reading the actual buffer
+	char* bufferbytes = (char*)malloc( bufflen + 1 );
+	bufferbytes[0] = '\0';
+	rdres = 1;
+	i = 0;
+	while( rdres > 0 ){
+		rdres = read( sd, bufferbytes+i, bufflen-i );
+
+		//printf("bufflen - i : %d\n", bufflen-i);
+		//printf( "number of bytes read: %d\n", rdres );
+		if( rdres == -1 ){
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+		}
+		i += rdres;
+	}
+		
+	bufferbytes[bufflen] = '\0';
+	printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
+	if(strcmp(bufferbytes, 	"Error") == 0){
+		free(bufferbytes);
+		return -1;
+	}else{
+		parseProtoc(&bufferbytes);
+		free(bufferbytes);
+	}
+
+	return 0;
+}
+
 
 int checkout (char * projname, int sd){
 	char num[10];
@@ -132,6 +359,7 @@ int checkout (char * projname, int sd){
 	printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
 	//call parsebuff here		
 	parseProtoc(&bufferbytes);
+	free(bufferbytes);
 	return 0;
 }
 
@@ -299,6 +527,19 @@ int main( int argc, char** argv ){
 			}
 			
 			//parseProtoc here or nah just let checkout handle it		
+		}else if(strcmp(argv[1], "create") == 0){
+ 			int retval;
+ 			if( (retval = create(argv[2], sd)) == -1){
+ 				printf("Error. Project creation failed.\n");
+ 				exit(2);
+ 			}
+   		
+ 		}else if(strcmp(argv[1], "currentversion") == 0){
+			int retval;
+		/*	if( (retval = currentversion(argv[2], sd)) == -1){
+				printf("Error. Project not found on server.\n");
+			}
+		*/
 		}
  
 	
