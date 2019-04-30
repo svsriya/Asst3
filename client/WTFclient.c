@@ -35,6 +35,78 @@ int charToInt( char* );
 int checkout (char **, int);
 int create (char **, int);
 int currentversion(char **, int);
+int history (char **, int);
+
+int history(char ** projname, int sd){
+	char * cmd = (char*)malloc(sizeof(char)*8);
+	strcpy(cmd, "history");
+	writeToSocket(&cmd, sd);
+	free(cmd);
+
+
+	char *pname = (char*)malloc(sizeof(char)* (strlen(*projname)+1));
+	pname[0]='\0';
+	strcpy(pname, *projname);
+	writeToSocket(&pname, sd);
+	free(pname);
+
+	char buf2[10];
+	int rdres = 1;
+	int i = 0;
+	while( rdres > 0 ){	
+			rdres = read( sd, buf2+i, 10-i );
+			printf( "number of bytes read: %d\n", rdres );
+			if( rdres == -1 ){	
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        	close(sd); return -1;
+			}
+			i += rdres;
+	}
+	int bufflen = charToInt( (char*)buf2 );
+	printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
+
+	// reading what server sent back
+	char* bufferbytes = (char*)malloc( bufflen + 1 );
+	bufferbytes[0] = '\0';
+	rdres = 1;
+	i = 0;
+	while( rdres > 0 ){
+		rdres = read( sd, bufferbytes+i, bufflen-i );
+
+		//printf("bufflen - i : %d\n", bufflen-i);
+		//printf( "number of bytes read: %d\n", rdres );
+		if( rdres == -1 ){
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       	return -1;
+		}
+		i += rdres;
+	}
+		
+	bufferbytes[bufflen] = '\0';
+	//printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
+	if(strcmp(bufferbytes, 	"NO") == 0){
+		free(bufferbytes);
+		return -1;
+	}else{
+		parseProtoc(&bufferbytes);				
+		printf( ANSI_COLOR_MAGENTA "%s\n" ANSI_COLOR_RESET, bufferbytes );
+		free(bufferbytes);
+
+		//now sys call to output to stdout
+		char * cmd = (char*)malloc(sizeof(char)*12);
+		strcpy(cmd, "cat history");
+		if((system(cmd))==-1){
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                     	free(cmd);
+			return -1;
+		}
+
+		free(cmd);	
+	}
+
+	return 0;
+}
+
 int writeToSocket( char **, int);
 int searchProject(char *);
 
@@ -535,6 +607,12 @@ int main( int argc, char** argv ){
 			if( (retval = currentversion(&argv[2], sd)) == -1){
 				printf("Error. Obtaining current version of project failed.\n");
 			}	
+		}else if(strcmp(argv[1], "history")==0){
+			int retval;
+			if( (retval = history(&argv[2], sd)) == -1){
+				printf("Error. Failed to obtain project history.\n");
+			}
+		
 		}	
 		freeaddrinfo( result );
 //		free( bufferbytes );
