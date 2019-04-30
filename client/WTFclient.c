@@ -35,76 +35,77 @@ int charToInt( char* );
 int checkout (char *, int);
 int create (char *, int);
 int currentversion(char *, int);
+int writeToSocket( char **, int);
+int searchProject(char *);
 
-int currentversion(char * projname, int sd){
-	char num[10];
-	char * buffer = "currentversion";
+int searchProject(char * proj){
+	DIR * dirp;
+	char * path = (char *)malloc(2 + strlen(proj) + 1);
 	
-	sprintf( num, "%010d", strlen(buffer) );
+	path[0]='\0';
+	strcat(path, "./");
+	strcat(path, proj);
+	//printf("PATHSearch: %s\n", path);
+	if((dirp = opendir(path)) == NULL){
+		free(path);
+		return -5;
+	}	
+	free(path);
+	return 0;
+
+}
+
+int writeToSocket(char ** buffer, int sd){
+	char num[10];
+	
+	sprintf( num, "%010d", strlen(*buffer) );
 	//strcat( num, ":\0" );
 
 	//first send bytes "currentversion"
-	int wtres, rdres;
+	int wtres;
 	wtres = 1;
 	int i = 0;
 	while( wtres > 0 ){
 		wtres = write( sd, num+i, strlen(num)-i );
-		printf("wtres cmd_bytes: %d\n", wtres);
+		printf("wtres bytes: %d\n", wtres);
 		if ( wtres == -1){	
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			return -1;
 		}	
 		i += wtres;
 	}
-	printf( ANSI_COLOR_MAGENTA "number of bytes_cmd sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
+	printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(*buffer) );
 	// send "currverr"
 	wtres = 1;
 	i = 0;
 	while( wtres > 0 ){
-		wtres = write( sd, buffer+i, strlen(buffer)-i );
+		wtres = write( sd, (*buffer)+i, strlen(*buffer)-i );
 		if ( wtres == -1){        
                        	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                        	return -1;
                	}
 		i += wtres;
 	}
-	printf( ANSI_COLOR_MAGENTA "cmd sent: %s\n" ANSI_COLOR_RESET, buffer );
+	printf( ANSI_COLOR_MAGENTA "sent2server: %s\n" ANSI_COLOR_RESET, *buffer );
+}
 
 
-	// first send the number of projname bytes	
-	sprintf( num, "%010d", strlen(projname) );
-	
-	wtres = 1;
-	i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, num+i, strlen(num)-i );
-		printf("wtres: %d\n", wtres);
-		if ( wtres == -1){	
-			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-			return -1;
-		}	
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
-	// send the data
-	wtres = 1;
-	i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, projname+i, strlen(projname)-i );
-		if ( wtres == -1){        
-                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                       	return -1;
-               	}
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, projname );
 
 
+int currentversion(char * projname, int sd){
+
+	char *pname = (char*)malloc(sizeof(char)* (strlen(projname)+1));
+	pname[0]='\0';
+	strcpy(pname, projname);
+
+	writeToSocket(&pname, sd);
+
+	free(pname);
 	//now see what server sends back
 	// reading the number of bytes in the buffer sent back
 	char buf2[10];
-	rdres = 1;
-	i = 0;
+	int rdres = 1;
+	int i = 0;
 	while( rdres > 0 ){	
 			rdres = read( sd, buf2+i, 10-i );
 			printf( "number of bytes read: %d\n", rdres );
@@ -152,73 +153,34 @@ int currentversion(char * projname, int sd){
 
 int create (char * projname, int sd){
 	char num[10];
-	char * buffer = "create";
+	char * buffer = (char*)malloc(sizeof(char)*7);
+//	buffer[0]='\0';
+	strcpy(buffer, "create");
 	
-	sprintf( num, "%010d", strlen(buffer) );
+	//sprintf( num, "%010d", strlen(buffer) );
 	//strcat( num, ":\0" );
 
 	//first send bytes "create"
-	int wtres, rdres;
-	wtres = 1;
-	int i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, num+i, strlen(num)-i );
-		printf("wtres cmd_bytes: %d\n", wtres);
-		if ( wtres == -1){	
-			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-			return -1;
-		}	
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "number of bytes_cmd sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
-	// send "create"
-	wtres = 1;
-	i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, buffer+i, strlen(buffer)-i );
-		if ( wtres == -1){        
-                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                       	return -1;
-               	}
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "cmd sent: %s\n" ANSI_COLOR_RESET, buffer );
-
+	writeToSocket(&buffer, sd);
+	free(buffer);
 
 	// first send the number of projname bytes	
 	sprintf( num, "%010d", strlen(projname) );
+	char *pname = (char*)malloc(sizeof(char)* (strlen(projname)+1));
 	
-	wtres = 1;
-	i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, num+i, strlen(num)-i );
-		printf("wtres: %d\n", wtres);
-		if ( wtres == -1){	
-			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-			return -1;
-		}	
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
-	// send the data
-	wtres = 1;
-	i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, projname+i, strlen(projname)-i );
-		if ( wtres == -1){        
-                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                       	return -1;
-               	}
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, projname );
+//	pname[0]='\0';
+	strcpy(pname, projname);
 
+	writeToSocket(&pname, sd);
+
+	free(pname);
+	
 
 	//now see what server sends back
 	// reading the number of bytes in the buffer sent back
 	char buf2[10];
-	rdres = 1;
-	i = 0;
+	int rdres = 1;
+	int i = 0;
 	while( rdres > 0 ){	
 			rdres = read( sd, buf2+i, 10-i );
 			printf( "number of bytes read: %d\n", rdres );
@@ -249,12 +211,68 @@ int create (char * projname, int sd){
 		
 	bufferbytes[bufflen] = '\0';
 	printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
+
 	if(strcmp(bufferbytes, 	"Error") == 0){
 		free(bufferbytes);
 		return -1;
-	}else{
-		parseProtoc(&bufferbytes);
-		free(bufferbytes);
+
+	}else if(strcmp(bufferbytes, "Project created in Server\n") == 0){
+		int search_res = searchProject(projname);
+		if(search_res == -5){
+			char * handshake1 = (char *)malloc(sizeof(char)*3);
+		
+			handshake1[0]='\0';
+			strcpy(handshake1, "OK");
+			writeToSocket(&handshake1, sd);
+
+			char buf3[10];
+			rdres = 1;
+			i = 0;
+			while( rdres > 0 ){	
+				rdres = read( sd, buf3+i, 10-i );
+				printf( "number of bytes read: %d\n", rdres );
+				if( rdres == -1 ){	
+					printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        		close(sd); return -1;
+				}
+				i += rdres;
+			}
+			bufflen = charToInt( (char*)buf3 );
+			printf( ANSI_COLOR_MAGENTA "Number of bytes being recieved: %d\n" ANSI_COLOR_RESET, bufflen );
+			// reading the actual buffer
+			char* bufferbytes1 = (char*)malloc( bufflen + 1 );
+			bufferbytes1[0] = '\0';
+			rdres = 1;
+			i = 0;
+			while( rdres > 0 ){
+				rdres = read( sd, bufferbytes1+i, bufflen-i );
+
+				//printf("bufflen - i : %d\n", bufflen-i);
+				//printf( "number of bytes read: %d\n", rdres );
+				if( rdres == -1 ){
+					printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       			return -1;
+				}
+				i += rdres;
+			}
+		
+			bufferbytes1[bufflen] = '\0';
+			printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes1 );
+		
+			parseProtoc(&bufferbytes1);
+			free(bufferbytes); free(bufferbytes1); free(handshake1);
+
+		}else{
+			char * handshake1 = (char *)malloc(sizeof(char)*3);
+			
+			handshake1[0]='\0';
+			strcpy(handshake1, "NO");
+			writeToSocket(&handshake1, sd);
+
+			printf("WARNING: This project already exists in your local repository. A new project with the same name was created on the server. The server will not be sending that project back to you.\n");
+			exit(2);
+		}
+
 	}
 
 	return 0;
@@ -263,72 +281,29 @@ int create (char * projname, int sd){
 
 int checkout (char * projname, int sd){
 	char num[10];
-	char * buffer = "checkout";
-	
+	char * buffer = (char*)malloc(sizeof(char)*9);
+
+	buffer[0]='\0';
+	strcpy(buffer, "checkout");
 	sprintf( num, "%010d", strlen(buffer) );
 	//strcat( num, ":\0" );
-
-	//first send "checkout"
-	int wtres, rdres;
-	wtres = 1;
-	int i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, num+i, strlen(num)-i );
-		printf("wtres cmd_bytes: %d\n", wtres);
-		if ( wtres == -1){	
-			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-			return -1;
-		}	
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "number of bytes_cmd sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
-	// send "checkout"
-	wtres = 1;
-	i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, buffer+i, strlen(buffer)-i );
-		if ( wtres == -1){        
-                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                       	return -1;
-               	}
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "cmd sent: %s\n" ANSI_COLOR_RESET, buffer );
-
+	//first send bytes "checkout"
+	writeToSocket(&buffer, sd);
+	free(buffer);
 
 	// first send the number of projname bytes	
 	sprintf( num, "%010d", strlen(projname) );
+	char *pname = (char*)malloc(sizeof(char)* (strlen(projname)+1));
 	
-	wtres = 1;
-	i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, num+i, strlen(num)-i );
-		printf("wtres: %d\n", wtres);
-		if ( wtres == -1){	
-			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-			return -1;
-		}	
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "number of bytes sent: %d\n" ANSI_COLOR_RESET, strlen(projname) );
-	// send the data
-	wtres = 1;
-	i = 0;
-	while( wtres > 0 ){
-		wtres = write( sd, projname+i, strlen(projname)-i );
-		if ( wtres == -1){        
-                       	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                       	return -1;
-               	}
-		i += wtres;
-	}
-	printf( ANSI_COLOR_MAGENTA "data sent: %s\n" ANSI_COLOR_RESET, projname );
-
+	pname[0]='\0';
+	strcpy(pname, projname);
+	writeToSocket(&pname, sd);
+	free(pname);
 	
 	// reading the number of bytes in the buffer sent back
 	char buf2[10];
-	rdres = 1;
-	i = 0;
+	int rdres = 1;
+	int i = 0;
 	while( rdres > 0 ){	
 			rdres = read( sd, buf2+i, 10-i );
 			printf( "number of bytes read: %d\n", rdres );
