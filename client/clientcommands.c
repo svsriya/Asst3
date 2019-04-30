@@ -173,7 +173,7 @@ char* hashcode( char* filepath )
 
         if( stat( filepath, &file_stat ) == -1 ){
                 printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
-                return;
+                return NULL;
         }
         filebuff = (char*)malloc( file_stat.st_size + 1);
         if( (fd = open( filepath, O_RDONLY ) ) == -1 )
@@ -234,7 +234,7 @@ int addM( char* projname, char* filename )
 			writeM( manpath, head );
 		//	printM( head );
 			freeManifest( head );
-			return;
+			return 0;
 		}  
 		prev = ptr;
 		ptr = ptr->next;
@@ -243,8 +243,9 @@ int addM( char* projname, char* filename )
 	ptr = (Manifest*)malloc( sizeof(Manifest) );
 	ptr->projversion = prev->projversion;
 	ptr->filepath = filename;
-	ptr->vnum = "1";
+	ptr->vnum = "0";
 	ptr->hash = hashcode(filename);
+	if( ptr->hash == NULL ) return -1;
 	ptr->onServer = "0";
 	ptr->removed = "0";
 	ptr->next = NULL;
@@ -279,17 +280,24 @@ int removeM( char* projname, char* filename )
 	{
 		if( strcmp( ptr->filepath, filename ) == 0 )
 		{
+			//check if file is already removed
+			if( strcmp( ptr->removed, "1" ) == 0 )
+			{
+				printf( ANSI_COLOR_RED "Warning: file is already marked as removed in the manifest\n"ANSI_COLOR_RESET );
+				return 0;
+			} 
 			//file already exists so update the hash
 			ptr->removed = "1";
-			printf( ANSI_COLOR_YELLOW "File has been marked for removal\n" ANSI_COLOR_RESET );
+			printf( ANSI_COLOR_YELLOW "File has been marked for removal in the manifest\n" ANSI_COLOR_RESET );
 			writeM( manpath, head );
 		//	printM( head );
 			freeManifest( head );
-			return;
+			return 0;
 		}  
 		ptr = ptr->next;
 	}
-	printf( ANSI_COLOR_RED "Error: file does not exist\n" ANSI_COLOR_RESET );
+	printf( ANSI_COLOR_RED "Error: file does not exist in the manifest\n" ANSI_COLOR_RESET );
+	freeManifest(head);
 	return -1;
 }
 

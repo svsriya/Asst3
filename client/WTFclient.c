@@ -14,6 +14,8 @@
 
 #include "parseprotoc.c"
 #include "parseprotoc.h"
+#include "clientcommands.c"
+#include "clientcommands.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -34,7 +36,7 @@ int checkout (char *, int);
 int create (char *, int);
 int currentversion(char *, int);
 
-int currentversion(char * projname, int){
+int currentversion(char * projname, int sd){
 	char num[10];
 	char * buffer = "currentversion";
 	
@@ -418,7 +420,15 @@ int main( int argc, char** argv ){
 	command = argv[1];	
 	if( strcmp(command, "configure") == 0 ){ // create .configure file
 		configure( argv[2], argv[3] );  
-	}
+	}else if( strcmp(argv[1], "add") == 0){
+		if( addM( argv[2], argv[3] ) == -1 ){
+			printf( "Error: adding file has failed\n" );
+		}
+	}else if( strcmp(argv[1], "remove") == 0){
+		if( removeM( argv[2], argv[3]) == -1){
+			printf( "Error: removing file has failed\n" );
+		}
+	}	
 	else{ // temporarily just testing that connecting to server works
 	
 		char* configure_path;
@@ -540,9 +550,7 @@ int main( int argc, char** argv ){
 				printf("Error. Project not found on server.\n");
 			}
 		*/
-		}
- 
-	
+		}	
 		freeaddrinfo( result );
 //		free( bufferbytes );
 		free( configure_path );
