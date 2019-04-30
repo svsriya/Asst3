@@ -36,6 +36,92 @@ int checkoutProj(int);
 int searchProj(char *);
 int createProj(int);
 int writeToSocket( char **, int);
+int currver(int);
+
+int currver(int cfd){
+	char buflen[10];
+	if( read(cfd, buflen, sizeof(buflen)) == -1){
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
+		return -1;	
+	}
+
+	int len = charToInt((char*)buflen);	
+	printf("Number of bytes_projname being recieved: %d\n", len);
+
+	//get projname from client
+	char* bufread2 = (char*)malloc( len + 1 );	
+//	bufread[0] = '\0';
+	int rdres = 1;
+	int i = 0;
+	while( rdres > 0 ){
+		rdres = read( cfd, bufread2+i, len-i );
+		printf("rdres: %d\n", rdres);
+		if( rdres == -1 ){	
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                	return -1;
+		}
+		i += rdres;
+	}	
+	bufread2[len] = '\0';	
+	printf( "projname received from client: %s\n", bufread2);
+
+
+	if( searchProj(bufread2) == -5){
+		//createProtocol("Error: project not found.\n", cfd);
+		char len[10];
+		char * err = (char *)malloc(sizeof(char)* 27);
+		strcat(err,  "Error: project not found.\n");
+		sprintf(len, "%010d", strlen(err)); 
+		int i = 0;
+		int written;
+
+		writeToSocket(&err, cfd);
+		
+		printf(ANSI_COLOR_YELLOW "err sent to client\n" ANSI_COLOR_RESET, len);
+		free(bufread2);
+		free(err);
+		return -1;
+
+	}else{
+	
+		//read in .Manifest and write2socket
+
+		char * patho = (char *)malloc(6 + 1 + strlen(bufread2) + 9 + 1);
+		//snprintf(path, strlen(path), "./root/%s\n", proj);
+		
+	//	snprintf(patho, strlen(patho), "./root/%s/.Manifest", bufread2);
+		patho[0] = '\0';
+		strcat(patho, "./root/");
+		strcat(patho, bufread2);
+		strcat(patho, "/.Manifest");
+		struct stat fstat;
+		int manf;
+
+		if( (manf = open(patho, O_RDONLY)) == -1){
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
+		}
+
+		if(stat(patho, &fstat) == -1){
+			(ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			exit(2);
+		}
+	
+		char * manbf = malloc(fstat.st_size+1);
+			manbf[0] = '\0';
+	
+		if( read(manf, manbf, fstat.st_size) == -1){
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			exit(2);
+		}
+
+		writeToSocket(&manbf, cfd);
+		
+		free(bufread2); free(patho);
+		free(manbf);
+		return 0;
+	}
+}
+
 
 int writeToSocket(char ** buf, int cfd){
 	char len[10];
@@ -440,9 +526,14 @@ int main( int argc, char** argv ){
 	}else if(strcmp(bufread, "create") == 0){
 		int retval = createProj(cfd);
 		if(retval == -1){
-			printf("Errot: Project creation failed.\n"); exit(2);
+			printf("Error: Project creation failed.\n"); exit(2);
 		}
 		
+	}else if(strcmp(bufread, "currentversion") == 0){
+		int retval = currver(cfd);
+		if(retval == -1){
+			printf("Error: Project creation failed.\n"); exit(2);
+		}
 	}	
 		
 	//if bufread == checkout then create protocol

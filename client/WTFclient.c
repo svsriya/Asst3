@@ -32,9 +32,9 @@
 */
 void configure( char*, char* );
 int charToInt( char* );
-int checkout (char *, int);
-int create (char *, int);
-int currentversion(char *, int);
+int checkout (char **, int);
+int create (char **, int);
+int currentversion(char **, int);
 int writeToSocket( char **, int);
 int searchProject(char *);
 
@@ -57,11 +57,11 @@ int searchProject(char * proj){
 
 int writeToSocket(char ** buffer, int sd){
 	char num[10];
-	
+	//char num[10];
 	sprintf( num, "%010d", strlen(*buffer) );
 	//strcat( num, ":\0" );
 
-	//first send bytes "currentversion"
+	//first send bytes "projj"
 	int wtres;
 	wtres = 1;
 	int i = 0;
@@ -92,11 +92,22 @@ int writeToSocket(char ** buffer, int sd){
 
 
 
-int currentversion(char * projname, int sd){
+int currentversion(char ** projname, int sd){
+	char * cmd = (char*)malloc(sizeof(char)*15);
+//	buffer[0]='\0';
+	strcpy(cmd, "currentversion");
+	
+	//sprintf( num, "%010d", strlen(buffer) );
+	//strcat( num, ":\0" );
 
-	char *pname = (char*)malloc(sizeof(char)* (strlen(projname)+1));
+	//first send bytes "create"
+	writeToSocket(&cmd, sd);
+	free(cmd);
+
+
+	char *pname = (char*)malloc(sizeof(char)* (strlen(*projname)+1));
 	pname[0]='\0';
-	strcpy(pname, projname);
+	strcpy(pname, *projname);
 
 	writeToSocket(&pname, sd);
 
@@ -151,7 +162,7 @@ int currentversion(char * projname, int sd){
 }
 
 
-int create (char * projname, int sd){
+int create (char ** projname, int sd){
 	char num[10];
 	char * buffer = (char*)malloc(sizeof(char)*7);
 //	buffer[0]='\0';
@@ -165,11 +176,11 @@ int create (char * projname, int sd){
 	free(buffer);
 
 	// first send the number of projname bytes	
-	sprintf( num, "%010d", strlen(projname) );
-	char *pname = (char*)malloc(sizeof(char)* (strlen(projname)+1));
+	sprintf( num, "%010d", strlen(*projname) );
+	char *pname = (char*)malloc(sizeof(char)* (strlen(*projname)+1));
 	
 //	pname[0]='\0';
-	strcpy(pname, projname);
+	strcpy(pname, *projname);
 
 	writeToSocket(&pname, sd);
 
@@ -217,7 +228,7 @@ int create (char * projname, int sd){
 		return -1;
 
 	}else if(strcmp(bufferbytes, "Project created in Server\n") == 0){
-		int search_res = searchProject(projname);
+		int search_res = searchProject(*projname);
 		if(search_res == -5){
 			char * handshake1 = (char *)malloc(sizeof(char)*3);
 		
@@ -279,7 +290,7 @@ int create (char * projname, int sd){
 }
 
 
-int checkout (char * projname, int sd){
+int checkout (char **projname, int sd){
 	char num[10];
 	char * buffer = (char*)malloc(sizeof(char)*9);
 
@@ -292,11 +303,11 @@ int checkout (char * projname, int sd){
 	free(buffer);
 
 	// first send the number of projname bytes	
-	sprintf( num, "%010d", strlen(projname) );
-	char *pname = (char*)malloc(sizeof(char)* (strlen(projname)+1));
+	sprintf( num, "%010d", strlen(*projname) );
+	char *pname = (char*)malloc(sizeof(char)* (strlen(*projname)+1));
 	
 	pname[0]='\0';
-	strcpy(pname, projname);
+	strcpy(pname, *projname);
 	writeToSocket(&pname, sd);
 	free(pname);
 	
@@ -506,7 +517,7 @@ int main( int argc, char** argv ){
 		//check for commands here
 		if(strcmp(argv[1], "checkout") == 0){
 			int retval;
-			if( (retval = checkout(argv[2], sd)) == -1){
+			if( (retval = checkout(&argv[2], sd)) == -1){
 				printf("Error. Project checkout failed.\n"); 
 				exit(2);
 			}
@@ -514,17 +525,16 @@ int main( int argc, char** argv ){
 			//parseProtoc here or nah just let checkout handle it		
 		}else if(strcmp(argv[1], "create") == 0){
  			int retval;
- 			if( (retval = create(argv[2], sd)) == -1){
+ 			if( (retval = create(&argv[2], sd)) == -1){
  				printf("Error. Project creation failed.\n");
  				exit(2);
  			}
    		
  		}else if(strcmp(argv[1], "currentversion") == 0){
 			int retval;
-		/*	if( (retval = currentversion(argv[2], sd)) == -1){
-				printf("Error. Project not found on server.\n");
-			}
-		*/
+			if( (retval = currentversion(&argv[2], sd)) == -1){
+				printf("Error. Obtaining current version of project failed.\n");
+			}	
 		}	
 		freeaddrinfo( result );
 //		free( bufferbytes );
