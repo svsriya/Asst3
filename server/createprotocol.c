@@ -43,8 +43,8 @@
 
 
 
-void createProtocol (char **, int);
-int openrequested (char **);
+void createProtocol (char **, char **, int);
+int openrequested (char **, char **);
 void sendProtoco();
 void destroyProtocolFile();
 void traverseDir(char **);
@@ -204,7 +204,7 @@ void destroyProtocolFile(){
 	}
 }
 
-int openrequested (char ** path){
+int openrequested (char ** path, char ** cmd){
 	
 	//printf("requested_path: %s\n, path");	
 	DIR * dirp;
@@ -251,7 +251,11 @@ int openrequested (char ** path){
 					//NOW WRITE TO PROTOCOLFILE!!!!
 					char * append = malloc(9 + 3 + strlen(bytesname)+1 + strlen(*path)+1 + strlen(bytesdata)+1 + strlen(buf)+1+1);
 					append[0]= '\0';
-					strcat( append, "sendfile:");
+					if(strcmp(*cmd, "currver") == 0){
+						strcat(append, "sendsman:");
+					}else{
+						strcat( append, "sendfile:");
+					}
 					strcat( append, "-3:");
 					strcat( append, bytesname); strcat (append, ":");
 					strcat( append, *path); strcat(append, ":");
@@ -315,9 +319,9 @@ int openrequested (char ** path){
 }
 
 
-void createProtocol (char ** path, int sockd){
+void createProtocol (char ** path, char ** cmd, int sockd){
 	printf("pATHO: %s\n", *path);
-	int openres = openrequested (path);
+	int openres = openrequested (path, cmd);
 	printf("openres done\n");	
 	struct stat filestat;
 

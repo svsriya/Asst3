@@ -89,7 +89,10 @@ int fetchHistory(int cfd){
 		strcat(patho, "./root/");
 		strcat(patho, bufread2);
 		strcat(patho, "/history");
-		createProtocol(&patho, cfd ); 	
+		char * history = (char*)malloc(sizeof(char)*8);
+		strcpy(history, "history");				
+		createProtocol(&patho, &history, cfd ); 	
+		free(history);
 	}
 
 }		
@@ -170,8 +173,11 @@ int currver(int cfd){
 			exit(2);
 		}
 
-		writeToSocket(&manbf, cfd);
-		
+//		writeToSocket(&manbf, cfd);
+		char * currver = (char*)malloc(sizeof(char)*8);
+		strcpy(currver, "currver");				
+		createProtocol(&patho, &currver, cfd ); 
+		free(currver);	
 		free(bufread2); free(patho);
 		free(manbf);
 		return 0;
@@ -362,8 +368,10 @@ int createProj(int cfd){
 		printf( "handshake1 received from client: %s\n", handshake1);
 
 		if(strcmp(handshake1, "OK") == 0){
-			createProtocol(&path, cfd ); /* creates and send protocol to client */
-
+			char * create = (char*)malloc(sizeof(char)*7);
+			strcpy(create, "create");				
+			createProtocol(&path, &create, cfd ); /* creates and send protocol to client */
+			free(create);
 		}else{
 
 			free(handshake0); free(handshake1);
@@ -457,8 +465,11 @@ int checkoutProj(int cfd){
 		strcat(patho, "./root/");
 		strcat(patho, bufread2);
 
-		//printf("calling createprotoc\n");	
-		createProtocol(&patho, cfd ); /* creates and send protocol to client */
+		//printf("calling createprotoc\n");
+		char * checkout = (char*)malloc(sizeof(char)*9);
+		strcpy(checkout, "checkout");				
+		createProtocol(&patho, &checkout, cfd ); /* creates and send protocol to client */
+		free(checkout);
 		free(bufread2); free(patho);
 	}
 

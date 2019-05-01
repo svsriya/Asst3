@@ -1,5 +1,5 @@
-void createProtocol (char **, int);
-int openrequested (char **);
+void createProtocol (char **,char **, int);
+int openrequested (char **, char**);
 void sendProtocol();
 void destroyProtocolFIle();
 void traverseDir(char **);
