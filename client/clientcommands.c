@@ -41,12 +41,7 @@ void freeManifest( Manifest* );
 char* searchProj( char* projname )
 {
         DIR* dirp;
-        char* projpath;
-
-        projpath = (char*)malloc( 9 + strlen(projname) + 1 );
-        projpath[0] = '\0';
-	strcat( projpath, "./client/" );
-        strcat( projpath, projname );
+        char* projpath = projname;
 
         if( (dirp = opendir(projpath)) == NULL )
                 return NULL;
@@ -170,7 +165,7 @@ char* hashcode( char* filepath )
         struct stat file_stat;
         char* filebuff;
 	unsigned char* hash;
-
+	printf( "creating hash for: %s\n", filepath );
         if( stat( filepath, &file_stat ) == -1 ){
                 printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 return NULL;
@@ -227,7 +222,6 @@ int addM( char* projname, char* filename )
 			if( strcmp(ptr->removed, "1") == 0 ) 
 			{
 				ptr->removed = "0";
-				ptr->onServer = "0";
 				printf( ANSI_COLOR_YELLOW "File has been added to .Manifest\n" ANSI_COLOR_RESET );
 			}
 			else printf( ANSI_COLOR_RED "Warning: file already exists in .Manifest, hashcode has been updated\n" ANSI_COLOR_RESET );
@@ -308,6 +302,7 @@ void freeManifest( Manifest* head )
 	{
 		Manifest* prev = ptr;
 		ptr = ptr->next;
+	//	free(prev->hash);
 		free(prev);
 	}
 }
