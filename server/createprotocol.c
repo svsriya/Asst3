@@ -302,7 +302,7 @@ void createProtocol (char ** path, char ** cmd, int sockd){
 	int pfd;
 	char* protocpath = "./protocol.txt";
 	
-	createGzip();
+//	createGzip();
 	//char * protocpath = "./protoc.gz";
         if( (pfd = open(protocpath, O_RDONLY))==-1){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);

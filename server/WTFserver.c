@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "sendrcvfile.h"
 #include "sendrcvfile.c"
@@ -13,6 +14,8 @@
 #include "createprotocol.h"
 #include "createprotocol.c"
 
+#include "threadsetup.c"
+//#include "threadsetup.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -31,6 +34,14 @@
  *  5. call to accept (loop to accept multiple connections
 */
 
+struct int_container{
+	int cfd;
+	int thread_place;
+};
+
+
+th_container threads [5];
+
 int charToInt( char* );
 int checkoutProj(int);
 int searchProj(char *);
@@ -38,6 +49,96 @@ int createProj(int);
 int writeToSocket( char **, int);
 int currver(int);
 int fetchHistory(int);
+void * handleClient(void *);
+void * loopthreads(void *);
+
+void * loopthreads(void * ptr){
+
+	int run = 1;
+	while(run == 1){	
+		int i;
+		for(i=0; i<5; i++){
+			if( (threads[i].is_occ == 1) && (threads[i].is_done == 1)){
+				void * result;
+				pthread_join(threads[i].thread_id, &result);
+			}
+		}
+	}		
+}
+
+void * handleClient(void * int_cntr){
+	struct int_container * ctr = (struct int_container *)int_cntr;
+	int cfd = ctr->cfd;
+	
+	char buflen[10];
+	if( read(cfd, buflen, sizeof(buflen)) == -1){
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
+		exit(2);	
+	}
+
+	int len = charToInt((char*)buflen);	
+	printf("Number of bytes_cmd being recieved: %d\n", len);
+	//get cmd from client
+	char* bufread = (char*)malloc( len + 1 );	
+//	bufread[0] = '\0';
+	int rdres = 1;
+	int i = 0;
+	while( rdres > 0 ){
+		rdres = read( cfd, bufread+i, len-i );
+		printf("rdrescmd: %d\n", rdres);
+		if( rdres == -1 ){	
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                	exit(2);
+		}
+		i += rdres;
+	}	
+	bufread[len] = '\0';	
+	printf( "cmd received from client: %s\n", bufread );
+	//free(bufread);
+	
+	/* if bufread  = checkout. do below checkoutproj(proj, cfd) */
+	if(strcmp(bufread, "checkout") == 0){
+		int retval = checkoutProj(cfd);		
+		if(retval == -1){
+			printf("Error: Project checkout failed.\n"); exit(2);	
+		}
+	}else if(strcmp(bufread, "create") == 0){
+		int retval = createProj(cfd);
+		if(retval == -1){
+			printf("Error: Project creation failed.\n"); exit(2);
+		}
+		
+	}else if(strcmp(bufread, "currentversion") == 0){
+		int retval = currver(cfd);
+		if(retval == -1){
+			printf("Error: Project creation failed.\n"); exit(2);
+		}
+	}else if(strcmp(bufread, "history") == 0){
+		int retval = fetchHistory(cfd);
+		if(retval == -1){
+			printf("Error: Failed to obtain project history.\n"); exit(2);
+		}
+	}	
+		
+	//if bufread == checkout then create protocol
+//	createGzip();
+//	sendProtocol("./protocol.txt", cfd);
+//	destroyProtocolFile();	
+
+	//createGzip();
+	printf("Server disconnected from client.\n");
+	free(bufread);
+	close(cfd); //close(sockfd);
+	//update isdone!
+	struct int_container * smth = (struct int_container *)int_cntr;
+	
+	threads[smth->thread_place].is_done = 1;
+	//pthread_cancel(&((threads[smth->thread_place]).thread_id));
+	void * retval;
+	pthread_exit(&retval);
+	return;
+}
+
 
 int fetchHistory(int cfd){
 	char buflen[10];
@@ -539,7 +640,7 @@ int main( int argc, char** argv ){
 	}
 
 	//call listen
-	if( listen(sockfd, 10) == -1){
+	if( listen(sockfd, 5) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 		exit(2);
 	}
@@ -547,76 +648,47 @@ int main( int argc, char** argv ){
 	//call accept
 	int cfd;
 	printf("Searching for connection....\n");
-	if( (cfd = accept(sockfd, (results->ai_addr), &(results->ai_addrlen))) == -1){
-		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
-		exit(2);	
-	}else{
-		printf( ANSI_COLOR_YELLOW "Client found!\n" ANSI_COLOR_RESET );
 
-	}		
+	int ap = 1;
+	//create array of threads
+	//
 	
+	//create a thread that loops through threads list 
+	//checks is_occ = 1 and if is_done also = 1
+	//if both criteria met, joins on thread
+/*	pthread thread_1;
+ *	pthread_create(&thread_1, NULL, loopThreads , "hi");
+ * */
+	while(ap == 1){
+		if( (cfd = accept(sockfd, (results->ai_addr), &(results->ai_addrlen))) == -1){
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
+			ap=0;
+			//pthread_cancel(thread_1);
+			exit(2);	
+		}else{
+			printf( ANSI_COLOR_YELLOW "Client found!\n" ANSI_COLOR_RESET );
+			//create thread stuff here
+			struct int_container * cont = (struct int_container*)malloc(sizeof(struct int_container));
+			cont->cfd = cfd;
+			//search thru
+			//th_container threads [5];
+			int i;
+			for(i=0; i<5; i++){
+				if(threads[i].is_occ == 0){
+					cont->thread_place = i;
+					threads[i].is_occ=1;
+					pthread_create(&(threads[i].thread_id), NULL, handleClient, cont);
+				}
+			}
+	
+			//pthread_t id;
+			//pthread_create(&id, NULL, busy, "Hi");
+		}		
+	}
 	//receive number of bytes in message from client
 	//
 	//CMD setup : i.e. checkout
-	char buflen[10];
-	if( read(cfd, buflen, sizeof(buflen)) == -1){
-		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
-		exit(2);	
-	}
-
-	int len = charToInt((char*)buflen);	
-	printf("Number of bytes_cmd being recieved: %d\n", len);
-	//get cmd from client
-	char* bufread = (char*)malloc( len + 1 );	
-//	bufread[0] = '\0';
-	rdres = 1;
-	int i = 0;
-	while( rdres > 0 ){
-		rdres = read( cfd, bufread+i, len-i );
-		printf("rdrescmd: %d\n", rdres);
-		if( rdres == -1 ){	
-			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                	exit(2);
-		}
-		i += rdres;
-	}	
-	bufread[len] = '\0';	
-	printf( "cmd received from client: %s\n", bufread );
-	//free(bufread);
+	//EVERYTHING AFTER THIS POINT MUST BE A VOID POINTER SO THREADS CAN DO SHTUFF
 	
-	/* if bufread  = checkout. do below checkoutproj(proj, cfd) */
-	if(strcmp(bufread, "checkout") == 0){
-		int retval = checkoutProj(cfd);		
-		if(retval == -1){
-			printf("Error: Project checkout failed.\n"); exit(2);	
-		}
-	}else if(strcmp(bufread, "create") == 0){
-		int retval = createProj(cfd);
-		if(retval == -1){
-			printf("Error: Project creation failed.\n"); exit(2);
-		}
-		
-	}else if(strcmp(bufread, "currentversion") == 0){
-		int retval = currver(cfd);
-		if(retval == -1){
-			printf("Error: Project creation failed.\n"); exit(2);
-		}
-	}else if(strcmp(bufread, "history") == 0){
-		int retval = fetchHistory(cfd);
-		if(retval == -1){
-			printf("Error: Failed to obtain project history.\n"); exit(2);
-		}
-	}	
-		
-	//if bufread == checkout then create protocol
-//	createGzip();
-//	sendProtocol("./protocol.txt", cfd);
-//	destroyProtocolFile();	
-
-	//createGzip();
-
-	printf("Server disconnected from client.\n");
-	free(bufread);
-	close(cfd); close(sockfd);
 	return 0; 
 }
