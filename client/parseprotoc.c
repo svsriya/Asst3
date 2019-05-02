@@ -115,6 +115,8 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 }
 void parseProtoc (char ** buf){
 	//tokenize 
+
+	
 	
 	char * protoc =  *buf;
 	char * tok = strtok (protoc, ":");
