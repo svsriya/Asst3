@@ -189,7 +189,7 @@ int openrequested (char ** path, char ** cmd){
 	//create protocol file to append to --> will be destroyed once delivered to client
 	int pfd;
 	char* protocpath = "./protocol.txt";
-	if( (pfd = open(protocpath, O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1){
+	if( (pfd = open(protocpath, O_CREAT | O_APPEND | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 		exit(2);
 	}
@@ -225,6 +225,8 @@ int openrequested (char ** path, char ** cmd){
 					append[0]= '\0';
 					if(strcmp(*cmd, "currver") == 0){
 						strcat(append, "sendsman:");
+					}else if(strcmp(*cmd, "history")==0){
+						strcat(append, "sendhist:");
 					}else{
 						strcat( append, "sendfile:");
 					}
@@ -298,8 +300,10 @@ void createProtocol (char ** path, char ** cmd, int sockd){
 	struct stat filestat;
 
 	int pfd;
-	//char* protocpath = "./protocol.txt";
-	char * protocpath = "./protoc.gz";
+	char* protocpath = "./protocol.txt";
+	
+	createGzip();
+	//char * protocpath = "./protoc.gz";
         if( (pfd = open(protocpath, O_RDONLY))==-1){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 	}
@@ -309,17 +313,17 @@ void createProtocol (char ** path, char ** cmd, int sockd){
 		exit(2);
 	}
 
+	//printf("size of gz: %d\n", filestat.st_size);
+	//printf("gz MODE: %o\n", filestat.st_mode);
 	char * buf = malloc(filestat.st_size+1);
 		buf[0] = '\0';
 	
-
 	if( read(pfd, buf, filestat.st_size) == -1){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 		exit(2);
 	}
 
 	//printf("protoc: %s\n", buf);
-
 	//sendProtocol to client			
 	char len[10];
 	sprintf(len, "%010d", strlen(buf)); 
@@ -335,7 +339,6 @@ void createProtocol (char ** path, char ** cmd, int sockd){
 	}	
 	
 	printf(ANSI_COLOR_YELLOW "%s bytes to read send to client\n" ANSI_COLOR_RESET, len);
-
 
 	i=0;
 	while( i!= strlen(buf)){

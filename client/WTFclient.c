@@ -34,7 +34,7 @@ void configure( char*, char* );
 int charToInt( char* );
 int checkout (char **, int);
 int create (char **, int);
-int currentversion(char **, int);
+int currentversion(char **, int, int);
 int history (char **, int);
 
 int history(char ** projname, int sd){
@@ -88,7 +88,7 @@ int history(char ** projname, int sd){
 		free(bufferbytes);
 		return -1;
 	}else{
-		parseProtoc(&bufferbytes);				
+		parseProtoc(&bufferbytes, 0);				
 		printf( ANSI_COLOR_MAGENTA "%s\n" ANSI_COLOR_RESET, bufferbytes );
 		free(bufferbytes);
 
@@ -164,7 +164,7 @@ int writeToSocket(char ** buffer, int sd){
 
 
 
-int currentversion(char ** projname, int sd){
+int currentversion(char ** projname, int sd, int cm){
 	char * cmd = (char*)malloc(sizeof(char)*15);
 //	buffer[0]='\0';
 	strcpy(cmd, "currentversion");
@@ -223,8 +223,16 @@ int currentversion(char ** projname, int sd){
 		free(bufferbytes);
 		return -1;
 	}else{
-		parseProtoc(&bufferbytes);				
-		printf( "%s\n", bufferbytes );
+		parseProtoc(&bufferbytes, cm);			
+		if(cm == 0){
+			char * cmd = (char*)malloc(sizeof(char)*13);
+			strcpy(cmd, "cat ./.s_man");
+
+			if(system(cmd)==-1){
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                       		return -1;
+			}	
+		}	
 		free(bufferbytes);
 	}
 
@@ -342,7 +350,7 @@ int create (char ** projname, int sd){
 			bufferbytes1[bufflen] = '\0';
 			printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes1 );
 		
-			parseProtoc(&bufferbytes1);
+			parseProtoc(&bufferbytes1, 1);
 			free(bufferbytes); free(bufferbytes1); free(handshake1);
 
 		}else{
@@ -418,7 +426,7 @@ int checkout (char **projname, int sd){
 	bufferbytes[bufflen] = '\0';
 	printf( ANSI_COLOR_MAGENTA "Buffer received: %s\n" ANSI_COLOR_RESET, bufferbytes );
 	//call parsebuff here		
-	parseProtoc(&bufferbytes);
+	parseProtoc(&bufferbytes, 1);
 	free(bufferbytes);
 	return 0;
 }
@@ -604,7 +612,7 @@ int main( int argc, char** argv ){
    		
  		}else if(strcmp(argv[1], "currentversion") == 0){
 			int retval;
-			if( (retval = currentversion(&argv[2], sd)) == -1){
+			if( (retval = currentversion(&argv[2], sd, 0)) == -1){
 				printf("Error. Obtaining current version of project failed.\n");
 			}	
 		}else if(strcmp(argv[1], "history")==0){

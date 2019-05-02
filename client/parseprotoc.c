@@ -22,10 +22,36 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 #include "parseprotoc.h"
+#include "zlib.h"
+#include <assert.h>
+#include "zpipe.c"
 
-void parseProtoc (char **);
+void parseProtoc (char **, int);
 void createDir (int, char **);
 void createFile (int, char **, int, char **);
+void unzip();
+
+void unzip(){
+	printf("trying to unzip gzip\n");
+	char * path = "./protocol.txt";
+	FILE * fd_pt;
+
+	if( (fd_pt = fopen("./protoc.txt", "w+")) == NULL){
+		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
+	}
+
+	FILE * fd_gzz;
+	if( (fd_gzz = fopen("./protoc.gz", "r+")) == NULL){
+		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
+	}
+
+	int res = inf(fd_gzz, fd_pt);
+	if(res != Z_OK)
+		zerr(res);
+
+	return;
+
+}
 
 void createDir(int subdir_size, char ** subdir_name){
 
@@ -71,7 +97,8 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 	path2[0] = '\0';
 	snprintf(path2, filename_size+1, *filename);
 		
-	if(strstr("./root", path) != NULL){
+	if(strncmp(path, "./root", 6) == 0){
+		//printf("root in path");
 		path = path+7;
 		path2 = path2+7;
 	}
@@ -94,7 +121,7 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 
 	int newfd;
 	//create file
-	if( (newfd = open(base, O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
+	if( (newfd = open(base, O_CREAT | O_APPEND | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 		exit(2);	
 	}	
@@ -113,11 +140,11 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 	printf("done\n");
 
 }
-void parseProtoc (char ** buf){
+void parseProtoc (char ** buf, int cm){
 	//tokenize 
 
-	
-	
+	//unzip();	
+	int type;	
 	char * protoc =  *buf;
 	char * tok = strtok (protoc, ":");
 
@@ -190,7 +217,7 @@ void parseProtoc (char ** buf){
 
 		}
 			
-	}else if(((strcmp("sendfile", tok)) == 0) || ((strcmp("sendsman", tok)) == 0) ){
+	}else if(((strcmp("sendfile", tok)) == 0) || ((strcmp("sendsman", tok)) == 0)|| ((strcmp("sendhist", tok))==0) ) {
 		char * cmdd = (char*)malloc(sizeof(char)*9);
 		strcpy(cmdd, tok);
 		tok = strtok(NULL, ":"); // -3
@@ -200,18 +227,32 @@ void parseProtoc (char ** buf){
 		tok = strtok(NULL, ":"); // name of file
 		
 		char * filename;
+
 		if((strcmp("sendfile", cmdd)) == 0){
 			filename = malloc(filename_size +1); //filename (path)
 			filename[0] = '\0';
 			snprintf(filename, filename_size+1, tok); 
 			printf("FILE NAME:  %s\n", filename);
+			type = 1;
+
 		}else if((strcmp("sendsman", cmdd)) == 0){
 			filename = malloc((sizeof(char)*9)); //filename (path)
 			filename[0] = '\0';
 			//.s_man
 			snprintf(filename, 9, "./.s_man"); 
 			printf("FILE NAME:  %s\n", filename);
-		} 
+			type = 2;
+
+		}else if(( strcmp("sendhist", cmdd)) == 0){
+			filename = malloc((sizeof(char)*10)); //filename (path)
+			filename[0] = '\0';
+			//.s_man
+			snprintf(filename, 10, "./s_history"); 
+			printf("FILE NAME:  %s\n", filename);
+			type = 3;
+
+		}
+
 		free(cmdd);
 		tok = strtok(NULL, ":");
 		int filedata_size = atoi(tok); //filedata_size
