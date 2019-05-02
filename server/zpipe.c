@@ -175,12 +175,12 @@ void zerr(int ret)
 }
 
 /* compress or decompress from stdin to stdout */
-int main(int argc, char **argv)
+/*int main(int argc, char **argv)
 {
     int ret;
 	char *input, *output;
 	FILE *infile, *outfile;
-    /* avoid end-of-line conversions */
+    // avoid end-of-line conversions 
     //SET_BINARY_MODE(stdin);
     //SET_BINARY_MODE(stdout);
 	
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 	
 	//argv[3] will be output file (should end in .gz)
 	
-    /* do compression if no arguments */
+    // do compression if no arguments 
     if (argc == 3) {
 		input = argv[1]; //regular file to be compressed
 		output = argv[2]; //file ending in .gz
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
         return ret;
     }
 
-    /* do decompression if -d specified */
+    // do decompression if -d specified 
     else if (argc == 4 && strcmp(argv[1], "-d") == 0) {
 		input = argv[2]; //compressed file ending in .gz
 		output = argv[3]; //regular file to decompress content
@@ -224,9 +224,9 @@ int main(int argc, char **argv)
         return ret;
     }
 
-    /* otherwise, report usage */
+    // otherwise, report usage 
     else {
         fputs("zpipe usage: zpipe [-d] < source > dest\n", stderr);
         return 1;
     }
-}
+}*/

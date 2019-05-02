@@ -22,23 +22,10 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-/*//#include <stdio.h>
-//#include <string.h>
 #include <assert.h>
-//#include "zlib.h"
-#include <bsd/unistd.h>
+#include "zlib.h"
+//#include <bsd/unistd.h>
 
-
-#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
-#  include <fcntl.h>
-#  include <io.h>
-#  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
-#else
-#  define SET_BINARY_MODE(file)
-#endif
-
-#define CHUNK 16384
-*/
 
 
 
@@ -50,44 +37,29 @@ void destroyProtocolFile();
 void traverseDir(char **);
 void createGzip();
 
-
-
 void createGzip(){
 
 	printf("trying to create gzip\n");
-	//open up gz file
-	char * gzpath = (char *)malloc(sizeof(char)*19);
-//	char * path = "./protocol.txt";
-	gzpath[0]='\0';
-	strcat(gzpath, "./protocolzip.txt\0");
-	//strcat(gzpath,"\0");
-	//char * cmd = "./gzappend protocol.txt.gz protocol.txt";
-	printf("GZPATH: %s\n", gzpath);
+	char * path = "./protocol.txt";
 	FILE * fd_pt;
 
-	if( (fd_pt = fopen("./protocol.txt", "r")) == NULL){
+	if( (fd_pt = fopen("./protocol.txt", "r+")) == NULL){
 		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
 	}
-
-	int fd_gz;
-	if((fd_gz = open(gzpath, O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1){
-		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
-	}	
 
 	FILE * fd_gzz;
-	if( (fd_gzz = fopen(gzpath, "r")) == NULL){
+	if( (fd_gzz = fopen("./protoc.gz", "w+")) == NULL){
 		printf( ANSI_COLOR_RED "Errno: %d Message %s Line %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); exit(2);
 	}
 
-//	setmode(fileno(fd_pt), "b");
-//	setmode(fileno(fd_gzz), "b");
-
-
 	int res = def(fd_pt, fd_gzz, -1);
+	if (res != Z_OK)
+            zerr(res);
 
-	fclose(fd_pt); fclose(fd_gzz);
-	printf("res of def: %d\n", res);
-	free(gzpath);
+
+//	fclose(fd_pt); fclose(fd_gzz);
+//	printf("res of def: %d\n", res);
+//	free(gzpath);
 	return;
 
 }
@@ -326,7 +298,8 @@ void createProtocol (char ** path, char ** cmd, int sockd){
 	struct stat filestat;
 
 	int pfd;
-	char* protocpath = "./protocol.txt";
+	//char* protocpath = "./protocol.txt";
+	char * protocpath = "./protoc.gz";
         if( (pfd = open(protocpath, O_RDONLY))==-1){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 	}
@@ -345,7 +318,7 @@ void createProtocol (char ** path, char ** cmd, int sockd){
 		exit(2);
 	}
 
-	printf("protoc: %s\n", buf);
+	//printf("protoc: %s\n", buf);
 
 	//sendProtocol to client			
 	char len[10];
