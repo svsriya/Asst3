@@ -16,6 +16,8 @@
 #include <string.h>
 #include <assert.h>
 #include "zlib.h"
+#include <string.h>
+#include <errno.h>
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
 #  include <fcntl.h>
@@ -49,8 +51,6 @@ int def(FILE *source, FILE *dest, int level)
     if (ret != Z_OK)
         return ret;
 
-
-   printf("hello from  DEF\n");
     /* compress until end of file */
     do {
         strm.avail_in = fread(in, 1, CHUNK, source);
@@ -178,22 +178,47 @@ void zerr(int ret)
 /*int main(int argc, char **argv)
 {
     int ret;
-
+	char *input, *output;
+	FILE *infile, *outfile;
     // avoid end-of-line conversions 
-    SET_BINARY_MODE(stdin);
-    SET_BINARY_MODE(stdout);
-
-    // do compression if no arguments/
-    if (argc == 1) {
-        ret = def(stdin, stdout, Z_DEFAULT_COMPRESSION);
+    //SET_BINARY_MODE(stdin);
+    //SET_BINARY_MODE(stdout);
+	
+	//argv[2] will be input file
+	
+	//argv[3] will be output file (should end in .gz)
+	
+    // do compression if no arguments 
+    if (argc == 3) {
+		input = argv[1]; //regular file to be compressed
+		output = argv[2]; //file ending in .gz
+		if( (infile=fopen(input, "r+")) == NULL){
+			printf("Errno:%d, Message:%s, Line:%d\n",errno, strerror(errno),__LINE__);
+			return 0;
+		}
+		if( (outfile=fopen(output, "w+")) == NULL){
+			printf("Errno:%d, Message:%s, Line:%d\n",errno, strerror(errno),__LINE__);
+			return 0;
+		}
+        ret = def(infile, outfile , Z_DEFAULT_COMPRESSION);
         if (ret != Z_OK)
             zerr(ret);
         return ret;
     }
 
-   //  do decompression if -d specified 
-    else if (argc == 2 && strcmp(argv[1], "-d") == 0) {
-        ret = inf(stdin, stdout);
+    // do decompression if -d specified 
+    else if (argc == 4 && strcmp(argv[1], "-d") == 0) {
+		input = argv[2]; //compressed file ending in .gz
+		output = argv[3]; //regular file to decompress content
+		if( (infile=fopen(input, "r+")) == NULL){
+			printf("Errno:%d, Message:%s, Line:%d\n",errno, strerror(errno),__LINE__);
+			return 0;
+		}
+		if( (outfile=fopen(output, "w+")) == NULL){
+			printf("Errno:%d, Message:%s, Line:%d\n",errno, strerror(errno),__LINE__);
+			return 0;
+		}
+        ret = inf(infile, outfile);
         if (ret != Z_OK)
             zerr(ret);
         return ret;

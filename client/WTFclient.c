@@ -223,8 +223,8 @@ int currentversion(char ** projname, int sd){
 		free(bufferbytes);
 		return -1;
 	}else{
-//		parseProtoc(&bufferbytes);				
-		printf( ANSI_COLOR_MAGENTA "%s\n" ANSI_COLOR_RESET, bufferbytes );
+		parseProtoc(&bufferbytes);				
+		printf( "%s\n", bufferbytes );
 		free(bufferbytes);
 	}
 

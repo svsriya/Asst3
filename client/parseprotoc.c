@@ -61,9 +61,8 @@ void createDir(int subdir_size, char ** subdir_name){
 	return;
 }
 
-void createFile(int filename_size, char ** filename, int filedata_size, char ** filedata){
-
-	
+void createFile(int filename_size, char ** filename, int filedata_size, char ** filedata){	
+	printf("FILENAMEinCF: %s\n", *filename);
 	char * path = malloc(filename_size +1);
 	path[0] = '\0';
 	snprintf(path, filename_size+1, *filename);
@@ -71,9 +70,11 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 	char * path2 = malloc(filename_size +1);
 	path2[0] = '\0';
 	snprintf(path2, filename_size+1, *filename);
-
-	path = path+7;
-	path2 = path2+7;
+		
+	if(strstr("./root", path) != NULL){
+		path = path+7;
+		path2 = path2+7;
+	}
 	
 	char * dir = dirname(path);
 	char * base = basename(path2);
@@ -114,6 +115,8 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 }
 void parseProtoc (char ** buf){
 	//tokenize 
+
+	
 	
 	char * protoc =  *buf;
 	char * tok = strtok (protoc, ":");
@@ -187,18 +190,29 @@ void parseProtoc (char ** buf){
 
 		}
 			
-	}else if((strcmp("sendfile", tok)) == 0){
+	}else if(((strcmp("sendfile", tok)) == 0) || ((strcmp("sendsman", tok)) == 0) ){
+		char * cmdd = (char*)malloc(sizeof(char)*9);
+		strcpy(cmdd, tok);
 		tok = strtok(NULL, ":"); // -3
 		tok = strtok(NULL, ":"); //number of bytes name of file
 		int filename_size = atoi(tok);
 		
 		tok = strtok(NULL, ":"); // name of file
-		char * filename = malloc(filename_size +1); //filename (path)
-		filename[0] = '\0';
-		snprintf(filename, filename_size+1, tok); 
-		//printf("FILE NAME:  %s\n", filename);
-
-
+		
+		char * filename;
+		if((strcmp("sendfile", cmdd)) == 0){
+			filename = malloc(filename_size +1); //filename (path)
+			filename[0] = '\0';
+			snprintf(filename, filename_size+1, tok); 
+			printf("FILE NAME:  %s\n", filename);
+		}else if((strcmp("sendsman", cmdd)) == 0){
+			filename = malloc((sizeof(char)*9)); //filename (path)
+			filename[0] = '\0';
+			//.s_man
+			snprintf(filename, 9, "./.s_man"); 
+			printf("FILE NAME:  %s\n", filename);
+		} 
+		free(cmdd);
 		tok = strtok(NULL, ":");
 		int filedata_size = atoi(tok); //filedata_size
 
