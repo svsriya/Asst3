@@ -25,8 +25,8 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-int commit( char* );
-int update( char* );
+int commit( char*, int );
+int update( char*, int );
 Manifest* createLive( Manifest* );
 
 Manifest* createLive( Manifest* client_man ) // generates the live hashcodes for each file in manifest
@@ -67,7 +67,19 @@ Manifest* createLive( Manifest* client_man ) // generates the live hashcodes for
 	printM(live);
 	return live;
 }
-int commit( char* projname )
+
+int update( char* projname, int ssd ){
+	//check that the proj exists
+	char* projpath = searchProj( projname );
+	if( projpath == NULL ){
+		printf( ANSI_COLOR_RED "Error: project not found in client\n" ANSI_COLOR_RESET );
+		return -1;
+	}
+	
+	return 0;
+}
+
+int commit( char* projname, int ssd )
 {	//first check that projpath exists
 	char* projpath = searchProj( projname );
 	if( projpath == NULL ){
