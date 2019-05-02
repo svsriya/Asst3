@@ -1,2 +1,2 @@
-int commit( char* );
-int update( char* );
+int commit( char*, int );
+int update( char*, int );
