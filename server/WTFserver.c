@@ -696,6 +696,7 @@ int main( int argc, char** argv ){
 				if(threads[i].is_occ == 0){
 					cont->thread_place = i;
 					threads[i].is_occ=1;
+					printf("placing thread in threads[%d]\n", i);
 					if((pthread_create(&(threads[i].thread_id), NULL, handleClient, cont)) !=0){
 						printf(ANSI_COLOR_RED "Error: pthread_create failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); exit(3); 
 					}
@@ -704,7 +705,7 @@ int main( int argc, char** argv ){
 					break;
 				}
 			}
-			free(cont);	
+			free(cont);	//is this the issue?
 		}		
 	}
 	//receive number of bytes in message from client
