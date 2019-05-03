@@ -627,17 +627,13 @@ int main( int argc, char** argv ){
 			char* cmd = (char*)malloc( 7 );
 			cmd[0] = '\0';
 			strcat( cmd, "commit" );
-			if( writeToSocket( &cmd, sd ) == -1 && writeToSocket(&argv[2], sd) == -1 ){
-				printf( "Error: failed to commit project.\n" );
-				free( cmd );
-			}			
-			else{	//command and projname sent
-				free( cmd );
-				if( commit( argv[2], sd ) == -1 ){
-					char* err = "Error";
-					writeToSocket( &err, sd );	// send error to the server
-					printf( "Error: failed to commit project.\n");
-				}
+			writeToSocket( &cmd, sd ); 
+			writeToSocket(&argv[2], sd);
+			free( cmd );			
+			if( commit( argv[2], sd ) == -1 ){
+				char* err = "Error";
+				writeToSocket( &err, sd );	// send error to the server
+				printf( "Error: failed to commit project.\n");
 			}
 		}
 			

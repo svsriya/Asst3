@@ -18,9 +18,9 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-int commit( char*, int );
+int commit( int );
 
-int commit( char* projname, int csd )
+int commit( int csd )
 {
 /*	need to read in the proj name
  *	check that the project exists, write error or success to client
