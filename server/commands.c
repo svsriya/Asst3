@@ -29,8 +29,9 @@ int commit( int csd )
  *  	make a call to currver to send the manifest
  *  	wait for client to send either .Commit file or error
 */
+	printf( "ENTERED COMMIT\n" );
 	char buflen[10];
-        if( read(cfd, buflen, sizeof(buflen)) == -1){
+        if( read(csd, buflen, sizeof(buflen)) == -1){
                 printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 return -1;
         }
@@ -42,7 +43,7 @@ int commit( int csd )
 	int rdres = 1;
 	int i = 0;
 	while( rdres > 0 ){
-                rdres = read( cfd, bufread2+i, len-i );
+                rdres = read( csd, bufread2+i, len-i );
                 printf("rdres: %d\n", rdres);
                 if( rdres == -1 ){
                         printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
@@ -62,7 +63,7 @@ int commit( int csd )
                 int i = 0;
                 int written;
 
-                writeToSocket(&err, cfd);
+                writeToSocket(&err, csd);
 
                 printf(ANSI_COLOR_YELLOW "err sent to client\n" ANSI_COLOR_RESET, len);
                 free(bufread2);
@@ -71,7 +72,7 @@ int commit( int csd )
         }
 	else{	//write succes to client
 		char* suc = "projfound";
-		writeToSocket( &err, cfd );
+		writeToSocket( &suc, csd );
 		printf( ANSI_COLOR_YELLOW "Projfound sent to the client\n" ANSI_COLOR_RESET );
 		free(bufread2);
 	}

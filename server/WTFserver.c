@@ -611,8 +611,8 @@ int main( int argc, char** argv ){
 	}else if( strcmp(bufread, "commit" ) == 0 ){
 		if( commit( cfd ) == -1 ){
 			printf( "Error: failed to commit\n" );	
-	}	
-		
+		}	
+	}		
 	//if bufread == checkout then create protocol
 //	createGzip();
 //	sendProtocol("./protocol.txt", cfd);
@@ -622,6 +622,6 @@ int main( int argc, char** argv ){
 
 	printf("Server disconnected from client.\n");
 	free(bufread);
-	close(cfd); close(sockfd);
+//	close(cfd); close(sockfd);
 	return 0; 
 }

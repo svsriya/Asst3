@@ -74,6 +74,7 @@ void build( char* manpath, Manifest** head )
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 return;
 	}
+	mbuffer[file_stat.st_size] = '\0';
 	// 2. skip first two lines of the manifest and start adding to linked list
 	int i;
 	char* projv;

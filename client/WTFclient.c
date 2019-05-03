@@ -624,15 +624,7 @@ int main( int argc, char** argv ){
 			}
 		
 		}else if(strcmp(argv[1], "commit") == 0){
-			char* cmd = (char*)malloc( 7 );
-			cmd[0] = '\0';
-			strcat( cmd, "commit" );
-			writeToSocket( &cmd, sd ); 
-			writeToSocket(&argv[2], sd);
-			free( cmd );			
 			if( commit( argv[2], sd ) == -1 ){
-				char* err = "Error";
-				writeToSocket( &err, sd );	// send error to the server
 				printf( "Error: failed to commit project.\n");
 			}
 		}
