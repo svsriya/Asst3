@@ -627,7 +627,12 @@ int main( int argc, char** argv ){
 			if( commit( argv[2], sd ) == -1 ){
 				printf( "Error: failed to commit project.\n");
 			}
+		}else if(strcmp(argv[1], "update") == 0 ){
+			if( update( argv[2], sd ) == -1 ){
+				printf( "Error: failed to update project.\n" );
+			}
 		}
+		
 			
 		freeaddrinfo( result );
 //		free( bufferbytes );

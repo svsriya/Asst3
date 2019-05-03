@@ -37,11 +37,11 @@ int readFromSocket( char** buf, int sd )
 	int len = charToInt((char*)buflen);
 	printf("Number of bytes being recieved: %d\n", len);
 	
-	char* bufread = (char*)malloc( len + 1 );
+	*buf = (char*)malloc( len + 1 );
 	int rdres = 1;
 	int i = 0;
 	while( rdres > 0 ){
-		rdres = read( sd, bufread+i, len-i );
+		rdres = read( sd, *buf+i, len-i );
 		printf("rdres: %d\n", rdres);
 		if( rdres == -1 ){
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
@@ -49,8 +49,8 @@ int readFromSocket( char** buf, int sd )
 		}
 		i += rdres;
 	}
-	bufread[len] = '\0';
-	printf( "message received from server: %s\n", bufread);	
+	(*buf)[len] = '\0';
+	printf( "message received from server: %s\n", *buf);	
 	return 0;
 }
 
@@ -133,7 +133,7 @@ int update( char* projname, int ssd ){
 	live = createLive( c_man, 1 );
 	// check for upload files
 	int upload = 0;	// will indicate if there are files to upload
-	if( strcmp( sman->projversion, cman->projversion ) == 0 )
+	if( strcmp( s_man->projversion, c_man->projversion ) == 0 )
 	{
 		// loop through the live manifest and server
 		Manifest* lptr;
@@ -152,7 +152,7 @@ int update( char* projname, int ssd ){
 			{
 				if( strcmp( sptr->hash, lptr->hash ) != 0 )
 				{
-					printf( ANSI_COLOR_GREEN "U\t%s\t%s\t%s\n" ANSI_COLOR_RESET, lptr->vnum, lptr->filepath, lptr->hash );
+					printf( ANSI_COLOR_GREEN "U\t%s\n" ANSI_COLOR_RESET, lptr->filepath );
 					upload = 1;
 				}
 			}
@@ -168,22 +168,151 @@ int update( char* projname, int ssd ){
 	{
 		// check for MAD
 		// create .Update file
-		int ufd;	
+		int ufd;
+		char* line;	
 		char* updatepath = (char*)malloc( strlen("/.Update") + strlen(projpath)+1 );
 		updatepath[0] = '\0';
 		strcat( updatepath, projpath );
 		strcat( updatepath, "/.Update" );
-		update[strlen(updatepath)] = '\0';
+		updatepath[strlen(updatepath)] = '\0';
 		if( (ufd = open( updatepath, O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1 )
 		{
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
 			return -1;
 		}
 		Manifest* sptr;
-		for( sptr = s_man->next; 
-		
+		int error = 0;
+		for( sptr = s_man->next; sptr != NULL; sptr = sptr->next )
+		{	//make sure to check if the file was removed by the client
+			int found = 0;
+			Manifest* cptr;
+			for( cptr = c_man->next; cptr != NULL; cptr = cptr->next )
+			{
+				if( strcmp( cptr->filepath, sptr->filepath ) == 0 && 
+					strcmp( cptr->vnum, sptr->vnum ) != 0 && strcmp( cptr->removed, "0" ) == 0 )
+				{
+					// need to check the hash of the live version, if the hash is dif from client, ERROR, else M
+					found = 1;
+					Manifest* lptr;
+					for( lptr = live->next; lptr != NULL && strcmp(lptr->filepath, cptr->filepath) != 0; lptr = lptr->next );
+					if( error == 0 && strcmp( lptr->hash, cptr->hash ) == 0 )
+					{	// M	filepath\n
+						line = (char*)malloc( 2+strlen(sptr->filepath)+2 );
+						line[0] = '\0';
+						strcat( line, "M\t" );
+						strcat( line, sptr->filepath );
+						strcat( line, "\n" );
+						//write to update file
+						if( write( ufd, line, strlen(line) ) == -1 )
+						{
+							printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+							return -1;
+						}	 
+						free(line);
+					}
+					else //PRINT ERROR
+					{
+						printf( ANSI_COLOR_RED "%s\n" ANSI_COLOR_RESET, sptr->filepath );
+						error = 1;
+					}
+				} 
+			}
+			if( found == 0 )	//file is not in the client but is in the server, so A
+			{	
+				line = (char*)malloc( 2+strlen(sptr->filepath)+2 );
+				line[0] = '\0';
+				strcat( line, "A\t" );
+				strcat( line, sptr->filepath );
+				strcat( line, "\n" );
+				//write to update file
+				if( write( ufd, line, strlen(line) ) == -1 )
+				{
+					printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+					return -1;
+				}	 
+				free(line);
+			}
+		}
+		// if no error came up, check for deletes
+		// check that each file in the client is in the server, if not, then its a delete
+		if( error == 0 )
+		{
+			Manifest* cptr;
+			for( cptr = c_man->next; cptr != NULL; cptr = cptr->next )
+			{
+				Manifest* sptr;
+				for( sptr = s_man; sptr != NULL; sptr = sptr->next )
+				{
+					if( strcmp( sptr->filepath, cptr->filepath ) == 0 )
+						break;
+				}
+				if( sptr == NULL )	// filepath not found in server
+				{
+
+					line = (char*)malloc( 2+strlen(sptr->filepath)+2 );
+					line[0] = '\0';
+					strcat( line, "D\t" );
+					strcat( line, sptr->filepath );
+					strcat( line, "\n" );
+					//write to update file
+					if( write( ufd, line, strlen(line) ) == -1 )
+					{
+						printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+						return -1;
+					}	 
+					free(line);
+				}
+			}
+		}
+		close(ufd);
+		// if an error occurred, delete the .Update file and return -1
+		if( error == 1 )
+		{	// rm -rf path
+			char* cmd = (char*)malloc( strlen(updatepath) + 7 );
+			cmd[0] = '\0';
+			strcat( cmd, "rm -rf " );
+			strcat( cmd, updatepath );
+			if( system( cmd ) == -1 )
+			{
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+				return -1;
+			} 
+			printf( "The files listed above have conflicts. Please resolve these conflicts before updating.\n" );
+			return -1;
+		}
+		// if the .Update file is empty, output 'Up to date' 
+		// otherwise, print out the entire .Update file
+		struct stat file_stat;
+		char* filebuf;
+		if( stat( updatepath, &file_stat ) == -1 )
+		{	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+			return -1;
+		}
+		if( file_stat.st_size == 0 )
+			printf( "Project is up to date\n" );
+		else
+		{
+			filebuf = (char*)malloc( file_stat.st_size + 1 );
+			if( (ufd = open( updatepath, O_RDONLY )) == -1 )
+			{
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+				return -1;
+			}
+			if( read( ufd, filebuf, file_stat.st_size ) == -1 )
+			{	
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+				return -1;
+			}
+			printf( "%s\n", filebuf );
+			free( filebuf );
+		}
+		free(updatepath);
+		freeManifest( live );
+		freeManifest( c_man );
+		freeManifest( s_man );
+		return 0;
 	}
-	return 0;
 }
 
 int commit( char* projname, int ssd )
