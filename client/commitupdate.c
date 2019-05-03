@@ -24,7 +24,35 @@
 int commit( char*, int );
 int update( char*, int );
 Manifest* createLive( Manifest* );
+int readFromSocket( char**, int );
 
+int readFromSocket( char** buf, int sd )
+{
+	char buflen[10];
+	if( read(sd, buflen, sizeof(buflen)) == -1){
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+		return -1;
+	}
+
+	int len = charToInt((char*)buflen);
+	printf("Number of bytes being recieved: %d\n", len);
+	
+	char* bufread = (char*)malloc( len + 1 );
+	int rdres = 1;
+	int i = 0;
+	while( rdres > 0 ){
+		rdres = read( ssd, bufread+i, len-i );
+		printf("rdres: %d\n", rdres);
+		if( rdres == -1 ){
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			return -1;
+		}
+		i += rdres;
+	}
+	bufread[len] = '\0';
+	printf( "message received from server: %s\n", bufread2);	
+	return 0;
+}
 
 Manifest* createLive( Manifest* client_man ) // generates the live hashcodes for each file in manifest
 {
@@ -83,33 +111,7 @@ int commit( char* projname, int ssd )
 		printf( ANSI_COLOR_RED "Error: project not found in client\n" ANSI_COLOR_RESET );
 		return -1; //EXIT NICELY 
 	}
-	// read from the server whether projname was found
-	char buflen[10];
-        if( read(ssd, buflen, sizeof(buflen)) == -1){
-                printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                return -1;
-        }
-
-        int len = charToInt((char*)buflen);
-        printf("Number of bytes being recieved: %d\n", len);
-        
-        char* bufread2 = (char*)malloc( len + 1 );
-        int rdres = 1;
-        int i = 0;
-        while( rdres > 0 ){
-                rdres = read( ssd, bufread2+i, len-i );
-                printf("rdres: %d\n", rdres);
-                if( rdres == -1 ){
-                        printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                        return -1;
-                }
-                i += rdres;
-        }
-        bufread2[len] = '\0';
-        printf( "message received from server: %s\n", bufread2);
-	if( strcmp( bufread2, "projfound" ) != 0 ) return -1;	//proj not found on server side
- 
-	//check whether .update exists, and if it does that its empty
+	//chek whether .update exists, and if it does that its empty
 	char* updatepath;
 	struct stat file_stat;
 	int sfd;
@@ -206,12 +208,13 @@ int commit( char* projname, int ssd )
 			cmd[0] = '\0';
 			strcat( cmd, "rm -rf " );
 			strcat( cmd, commitpath );
-			system( cmd );	//.commit deleted
+			if( system( cmd ) == -1 ){
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+			}	//.commit deleted
 			free( commitpath );
 			freeManifest(live);
 			freeManifest(s_man);
 			freeManifest(c_man);
-			// WRITE FAIL TO SERVER	
 			return -1;
 		}
 	}
@@ -243,11 +246,21 @@ int commit( char* projname, int ssd )
 		free(line);
 	}
 	// SEND .COMMIT TO THE SERVER
+	char* cmd = (char*)malloc(7);
+	cmd[0] = '\0'; 
+	strcat( cmd, "commit" );
+	writeToServer( cmd, ssd );
+	free(cmd);
 	// system( "rm -rf .s_man" );
 	printf( "commit successful! .Commit has been sent to the server. Please run \"push\" to save changes to repository.\n" ); 
 	freeManifest(live);
 	freeManifest(s_man);
 	freeManifest(c_man);
 	free(commitpath);
+	return 0;
+}
+
+int main( int argc, char** argv )
+{
 	return 0;
 }
