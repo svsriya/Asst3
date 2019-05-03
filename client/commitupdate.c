@@ -11,11 +11,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-
-#include "parseprotoc.c"
-#include "parseprotoc.h"
-#include "clientcommands.h"
-#include "clientcommands.c"
+#include "commitupdate.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -28,6 +24,7 @@
 int commit( char*, int );
 int update( char*, int );
 Manifest* createLive( Manifest* );
+
 
 Manifest* createLive( Manifest* client_man ) // generates the live hashcodes for each file in manifest
 {
@@ -75,7 +72,7 @@ int update( char* projname, int ssd ){
 		printf( ANSI_COLOR_RED "Error: project not found in client\n" ANSI_COLOR_RESET );
 		return -1;
 	}
-	
+		
 	return 0;
 }
 
@@ -86,6 +83,32 @@ int commit( char* projname, int ssd )
 		printf( ANSI_COLOR_RED "Error: project not found in client\n" ANSI_COLOR_RESET );
 		return -1; //EXIT NICELY 
 	}
+	// read from the server whether projname was found
+	char buflen[10];
+        if( read(ssd, buflen, sizeof(buflen)) == -1){
+                printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                return -1;
+        }
+
+        int len = charToInt((char*)buflen);
+        printf("Number of bytes being recieved: %d\n", len);
+        
+        char* bufread2 = (char*)malloc( len + 1 );
+        int rdres = 1;
+        int i = 0;
+        while( rdres > 0 ){
+                rdres = read( ssd, bufread2+i, len-i );
+                printf("rdres: %d\n", rdres);
+                if( rdres == -1 ){
+                        printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+                        return -1;
+                }
+                i += rdres;
+        }
+        bufread2[len] = '\0';
+        printf( "message received from server: %s\n", bufread2);
+	if( strcmp( bufread2, "projfound" ) != 0 ) return -1;	//proj not found on server side
+ 
 	//check whether .update exists, and if it does that its empty
 	char* updatepath;
 	struct stat file_stat;
@@ -103,9 +126,9 @@ int commit( char* projname, int ssd )
 	free( updatepath );
 
 	// fetch server's .Manifest
-	// I'LL ADD IN ACTUAL STUFF LATER
 	// server's .Manifest = .s_man
 	// client's .Manifest = .Manifest
+	if( currentversion(&projname, ssd, 1) == -1 ) return -1;
 	char* sman = "./.s_man";
 	char* cman = (char*)malloc( strlen(projpath) + 11 );
 	cman[0] = '\0';
@@ -226,11 +249,5 @@ int commit( char* projname, int ssd )
 	freeManifest(s_man);
 	freeManifest(c_man);
 	free(commitpath);
-	return 0;
-}
-
-int main( int argc, char** argv )
-{
-	int res = commit( argv[1] );
 	return 0;
 }
