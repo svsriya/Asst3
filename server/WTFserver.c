@@ -41,6 +41,7 @@ struct int_container{
 
 
 th_container threads [5];
+int numthreads;
 
 int charToInt( char* );
 int checkoutProj(int);
@@ -53,16 +54,32 @@ void * handleClient(void *);
 void * loopthreads(void *);
 
 void * loopthreads(void * ptr){
-
+	printf(ANSI_COLOR_YELLOW "loopthreads running...!\n" ANSI_COLOR_RESET);
 	int run = 1;
-	while(run == 1){	
+	int numruns = 0;
+	while(run == 1){
+//		printf("numruns: %d\n", numruns);	
 		int i;
 		for(i=0; i<5; i++){
-			if( (threads[i].is_occ == 1) && (threads[i].is_done == 1)){
+			if( (threads[i].is_occ !=0) && (threads[i].is_done !=0)){
+
+				//make this spot empty and unfinished
+				threads[i].is_occ = 0;
+				threads[i].is_done = 0;
+
+				printf("position in th_container: %d\n", i);
 				void * result;
-				pthread_join(threads[i].thread_id, &result);
+				if( (pthread_cancel((threads[i]).thread_id) ) !=0) {
+					printf(ANSI_COLOR_RED "Error: pthread_cancel failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
+				}
+				if( (pthread_join(threads[i].thread_id, &result))!=0){
+					printf(ANSI_COLOR_RED "Error: pthread_join failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
+				}
+				
+				//set is_occ & is_done to 0
 			}
 		}
+		numruns++;
 	}		
 }
 
@@ -126,16 +143,17 @@ void * handleClient(void * int_cntr){
 //	destroyProtocolFile();	
 
 	//createGzip();
-	printf("Server disconnected from client.\n");
+	//printf("Server disconnected from client.\n");
 	free(bufread);
-	close(cfd); //close(sockfd);
+	//close(cfd); //close(sockfd);
+
 	//update isdone!
-	struct int_container * smth = (struct int_container *)int_cntr;
+	struct int_container * ptr = (struct int_container *)int_cntr;	
+	threads[ptr->thread_place].is_done = 1;
 	
-	threads[smth->thread_place].is_done = 1;
-	//pthread_cancel(&((threads[smth->thread_place]).thread_id));
+	//thread safely exit here
 	void * retval;
-	pthread_exit(&retval);
+	pthread_exit(&retval);  //this function always succeeds
 	return;
 }
 
@@ -197,8 +215,6 @@ int fetchHistory(int cfd){
 	}
 
 }		
-
-
 
 int currver(int cfd){
 	char buflen[10];
@@ -656,14 +672,17 @@ int main( int argc, char** argv ){
 	//create a thread that loops through threads list 
 	//checks is_occ = 1 and if is_done also = 1
 	//if both criteria met, joins on thread
-/*	pthread thread_1;
- *	pthread_create(&thread_1, NULL, loopThreads , "hi");
- * */
+	pthread_t thread_1;
+ 	if((pthread_create(&thread_1, NULL, loopthreads , "hi")!=0)){
+		printf(ANSI_COLOR_RED "Error: pthread_create failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); exit(3); 
+	}
+ 
+	numthreads = 0;
 	while(ap == 1){
 		if( (cfd = accept(sockfd, (results->ai_addr), &(results->ai_addrlen))) == -1){
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 			ap=0;
-			//pthread_cancel(thread_1);
+			pthread_cancel(thread_1);
 			exit(2);	
 		}else{
 			printf( ANSI_COLOR_YELLOW "Client found!\n" ANSI_COLOR_RESET );
@@ -677,12 +696,15 @@ int main( int argc, char** argv ){
 				if(threads[i].is_occ == 0){
 					cont->thread_place = i;
 					threads[i].is_occ=1;
-					pthread_create(&(threads[i].thread_id), NULL, handleClient, cont);
+					if((pthread_create(&(threads[i].thread_id), NULL, handleClient, cont)) !=0){
+						printf(ANSI_COLOR_RED "Error: pthread_create failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); exit(3); 
+					}
+					numthreads++;
+					printf("numthreads: %d\n", numthreads);			
+					break;
 				}
 			}
-	
-			//pthread_t id;
-			//pthread_create(&id, NULL, busy, "Hi");
+			free(cont);	
 		}		
 	}
 	//receive number of bytes in message from client
