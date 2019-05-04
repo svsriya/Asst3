@@ -85,7 +85,9 @@ Manifest* createLive( Manifest* client_man, int cmd ) // generates the live hash
 			int num = atoi(cptr->vnum)+1;
 			char buf[11];
 			sprintf( buf, "%d", num);
-			newnode->vnum = buf;
+			newnode->vnum = (char*)malloc(strlen(buf) + 1);
+			newnode->vnum[0] = '\0';
+			strcat( newnode->vnum, buf );
 			//printf( "newnode->vnum = %s\n", newnode->vnum );	
 		}
 		else newnode->vnum = cptr->vnum;
@@ -398,7 +400,7 @@ int commit( char* projname, int ssd )
 			strcat( line, "\t" );
 			strcat( line, lptr->hash );
 			strcat( line, "\n" );
-			printf( "lptr->vnum = %s\n", lptr->vnum );
+			//printf( "lptr->vnum = %s\n", lptr->vnum );
 			if( write( cmfd, line, strlen(line) ) == -1 )
                 	{
 	                	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );

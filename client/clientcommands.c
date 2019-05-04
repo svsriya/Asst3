@@ -80,34 +80,80 @@ void build( char* manpath, Manifest** head )
 	char* projv;
 	char* token;
 	char s[3] = "\t\n";
+	// to avoid weird bugs, copy the result of strtok
 	projv = strtok( mbuffer, s );	//proj version
 	ptr = (Manifest*)malloc( sizeof(Manifest) );
-	ptr->projversion = projv;
+	
+	ptr->projversion = (char*)malloc( strlen(projv) + 1);
+	ptr->projversion[0] = '\0';
+	strcat( ptr->projversion, projv );
+
 	token = strtok( NULL, s );
-        ptr->filepath = token;
-        ptr->vnum = strtok( NULL, s );
-        ptr->onServer = strtok( NULL, s );
-        ptr->removed = strtok( NULL, s );
-        ptr->hash = strtok( NULL, s );
-        token = strtok( NULL, s );
+	ptr->filepath = (char*)malloc( strlen( token ) + 1 );
+        ptr->filepath[0] = '\0';
+	strcat(ptr->filepath, token);
+
+	token = strtok( NULL, s );
+        ptr->vnum = (char*)malloc( strlen( token ) + 1 );
+	ptr->vnum[0] = '\0';
+	strcat( ptr->vnum, token );
+        
+	token = strtok( NULL, s );
+	ptr->onServer = (char*)malloc( strlen( token ) + 1 );
+	ptr->onServer[0] = '\0';
+	strcat( ptr->onServer, token );        
+
+	token = strtok( NULL, s );
+	ptr->removed = (char*)malloc( strlen( token ) + 1 );
+	ptr->removed[0] = '\0';
+	strcat( ptr->removed, token );       
+ 
+	token = strtok( NULL, s );
+	ptr->hash = (char*)malloc( strlen( token ) + 1 );
+	ptr->hash[0] = '\0';
+	strcat( ptr->hash, token );       
+ 
+	token = strtok( NULL, s );
 	*head = ptr;
 	Manifest* newNode;
 	while( token != NULL )
 	{
 		// first put in project version
 		newNode = (Manifest*)malloc( sizeof(Manifest) );
-		newNode->projversion = projv;
-		newNode->filepath = token;
-		newNode->vnum = strtok( NULL, s );
-		newNode->onServer = strtok( NULL, s );
-		newNode->removed = strtok( NULL, s );
-		newNode->hash = strtok( NULL, s );
+		newNode->projversion = (char*)malloc( strlen( projv ) + 1 );
+		newNode->projversion[0] = '\0';
+		strcat( newNode->projversion, projv );
+
+		newNode->filepath = (char*)malloc( strlen( token ) + 1 );
+		newNode->filepath[0] = '\0';
+		strcat( newNode->filepath, token );	
+	
+		token = strtok( NULL, s );
+		newNode->vnum = (char*)malloc( strlen( token ) + 1 );
+		newNode->vnum[0] = '\0';
+		strcat( newNode->vnum, token );	
+	
+		token = strtok( NULL, s );
+		newNode->onServer = (char*)malloc( strlen( token ) + 1 );
+		newNode->onServer[0] = '\0';
+		strcat( newNode->onServer, token );		
+
+		token = strtok( NULL, s );
+		newNode->removed = (char*)malloc( strlen( token ) + 1 );
+		newNode->removed[0] = '\0';
+		strcat( newNode->removed, token );
+
+		token = strtok( NULL, s );
+		newNode->hash = (char*)malloc( strlen( token ) + 1 );
+		newNode->hash[0] = '\0';
+		strcat( newNode->hash, token );		
+
 		token = strtok( NULL, s );
 		ptr->next = newNode;
 		ptr = ptr->next;
 	}
 	ptr->next = NULL;
-	//free( mbuffer );
+	free( mbuffer );
 }
 
 void writeM( char* manpath, Manifest* head )
@@ -166,7 +212,7 @@ char* hashcode( char* filepath )
         struct stat file_stat;
         char* filebuff;
 	unsigned char* hash;
-	printf( "creating hash for: %s\n", filepath );
+	//printf( "creating hash for: %s\n", filepath );
         if( stat( filepath, &file_stat ) == -1 ){
                 printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 return NULL;
@@ -222,7 +268,7 @@ int addM( char* projname, char* filename )
 			ptr->hash = hashcode(filename);
 			if( strcmp(ptr->removed, "1") == 0 ) 
 			{
-				ptr->removed = "0";
+				ptr->removed[0] = '0';
 				printf( ANSI_COLOR_YELLOW "File has been added to .Manifest\n" ANSI_COLOR_RESET );
 			}
 			else printf( ANSI_COLOR_RED "Warning: file already exists in .Manifest, hashcode has been updated\n" ANSI_COLOR_RESET );
@@ -236,13 +282,23 @@ int addM( char* projname, char* filename )
 	}
 	// new file!
 	ptr = (Manifest*)malloc( sizeof(Manifest) );
-	ptr->projversion = prev->projversion;
-	ptr->filepath = filename;
-	ptr->vnum = "0";
+	ptr->projversion = (char*)malloc( strlen(prev->projversion) + 1);
+	ptr->projversion[0] = '\0';
+	strcat( ptr->projversion, prev->projversion );
+	ptr->filepath = (char*)malloc( strlen(filename) + 1);
+	ptr->filepath[0] = '\0';
+	strcat( ptr->filepath, filename );
+	ptr->vnum = (char*)malloc( 2 );
+	ptr->vnum[0] = '\0';
+	strcat( ptr->vnum, "0" );
 	ptr->hash = hashcode(filename);
 	if( ptr->hash == NULL ) return -1;
-	ptr->onServer = "0";
-	ptr->removed = "0";
+	ptr->onServer = (char*)malloc( 2 );
+	ptr->onServer[0] = '\0';
+	strcat( ptr->onServer, "0" );
+	ptr->removed = (char*)malloc( 2 );
+	ptr->removed[0] = '\0';
+	strcat( ptr->removed, "0" );
 	ptr->next = NULL;
 	prev->next = ptr;
 	writeM( manpath, head );
@@ -282,7 +338,7 @@ int removeM( char* projname, char* filename )
 				return 0;
 			} 
 			//file already exists so update the hash
-			ptr->removed = "1";
+			ptr->removed[0] = '1';
 			printf( ANSI_COLOR_YELLOW "File has been marked for removal in the manifest\n" ANSI_COLOR_RESET );
 			writeM( manpath, head );
 		//	printM( head );
@@ -303,7 +359,12 @@ void freeManifest( Manifest* head )
 	{
 		Manifest* prev = ptr;
 		ptr = ptr->next;
-	//	free(prev->hash);
+		free(prev->projversion);
+		free(prev->filepath);
+		free(prev->vnum);
+		free(prev->onServer);
+		free(prev->removed);
+		free(prev->hash);
 		free(prev);
 	}
 }

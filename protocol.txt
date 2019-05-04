@@ -1,2 +1,2 @@
-sendsman:-3:22:./root/proj1/.Manifest:39:1
+sendsman:-3:22:./root/proj2/.Manifest:39:1
 Filename	Version	On Serv	Removed	Hash:

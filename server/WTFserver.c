@@ -13,8 +13,6 @@
 #include "createprotocol.h"
 #include "createprotocol.c"
 
-#include "commands.h"
-#include "commands.c"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -608,11 +606,8 @@ int main( int argc, char** argv ){
 		if(retval == -1){
 			printf("Error: Failed to obtain project history.\n"); exit(2);
 		}
-	}else if( strcmp(bufread, "commit" ) == 0 ){
-		if( commit( cfd ) == -1 ){
-			printf( "Error: failed to commit\n" );	
-		}	
-	}		
+	}	
+		
 	//if bufread == checkout then create protocol
 //	createGzip();
 //	sendProtocol("./protocol.txt", cfd);
@@ -622,6 +617,6 @@ int main( int argc, char** argv ){
 
 	printf("Server disconnected from client.\n");
 	free(bufread);
-//	close(cfd); close(sockfd);
+	close(cfd); close(sockfd);
 	return 0; 
 }

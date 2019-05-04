@@ -16,8 +16,6 @@
 #include "parseprotoc.h"
 #include "clientcommands.c"
 #include "clientcommands.h"
-#include "commitupdate.h"
-#include "commitupdate.c"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -623,17 +621,7 @@ int main( int argc, char** argv ){
 				printf("Error. Failed to obtain project history.\n");
 			}
 		
-		}else if(strcmp(argv[1], "commit") == 0){
-			if( commit( argv[2], sd ) == -1 ){
-				printf( "Error: failed to commit project.\n");
-			}
-		}else if(strcmp(argv[1], "update") == 0 ){
-			if( update( argv[2], sd ) == -1 ){
-				printf( "Error: failed to update project.\n" );
-			}
-		}
-		
-			
+		}	
 		freeaddrinfo( result );
 //		free( bufferbytes );
 		free( configure_path );
