@@ -1,2 +1,0 @@
-sendsman:-3:27:./root/projectAIK/.Manifest:39:1
-Filename	Version	On Serv	Removed	Hash:

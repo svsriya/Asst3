@@ -22,4 +22,8 @@ typedef struct th_container{
 }th_container;
 
 
+typedef struct sig_waiter_args{
+	sigset_t *set;
+	int sockfd;
+}sig_waiter_args;
 

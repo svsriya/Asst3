@@ -15,6 +15,9 @@
 #include "createprotocol.h"
 #include "createprotocol.c"
 
+#include "parseprotoc.c"
+#include "parseprotoc.h"
+
 #include "threadsetup.c"
 //#include "threadsetup.h"
 
@@ -36,17 +39,12 @@
  *  5. call to accept (loop to accept multiple connections
 */
 
-/*struct int_container{
-	int cfd;
-	int thread_place;
-};
-*/
-
 /*globals*/
 th_container threads [BACKLOG];
 int numthreads;
 pthread_t mainboi; 
 int sockfd;
+
 
 int charToInt( char* );
 int checkoutProj(int);
@@ -57,31 +55,21 @@ int currver(int, int, char**);
 int fetchHistory(int);
 void * handleClient(void *);
 //void * loopthreads(void *);
-void handle_sigs(int);
+void * handle_sigs(void *);
 
-void handle_sigs(int signum){
-	switch(signum){
-		case SIGINT: // if sigint is received by any of the threads; including mainboi
-			//printf("SIGINT caught.\n");
-			//close socket descriptor to stop accepting calls			
-			if(pthread_self() == mainboi){
-				printf("SIGINT caught by main thread.\n");
-				printf("Server disconnecting...\n");
-				close(sockfd);
-			}else{
-				printf("SIGINT caught by other thread.\n"); //redirect sigint to MAINthread
-				pthread_kill(mainboi, SIGUSR1);
-			}	
-			break;
-		
-		case SIGUSR1:
-			if(pthread_self() == mainboi){
-				printf("SIGINT ---> SIGUSR1 caught by main thread.\n");
-				printf("Server disconnecting...\n");
-				close(sockfd);
-			}
+void * handle_sigs(void * args){
+	sig_waiter_args * swargs = (sig_waiter_args *)args;
+	int signum;
+	printf("hangle_sigs thread blocking till SIGINT becomes pending...\n");	
+
+	if(sigwait(swargs->set, &signum)!= 0){
+		fprintf(stderr, "Errno: $d Msg: %s LINE#: %d", errno, strerror(errno), __LINE__); exit(1);
 	}
-	return;
+
+	printf("Caught SIGINT. Shutting down Server...\n");
+	shutdown(swargs->sockfd, SHUT_RDWR);
+	pthread_exit(NULL);
+	//return;
 
 }
 
@@ -207,8 +195,9 @@ int fetchHistory(int cfd){
 		strcat(patho, "/history");
 		char * history = (char*)malloc(sizeof(char)*8);
 		strcpy(history, "history");				
-		createProtocol(&patho, &history, cfd ); 	
+		createProtocol(&patho, &history, &bufread2, cfd ); 	
 		free(history);
+		free(bufread2);
 	}
 
 }		
@@ -298,7 +287,7 @@ int currver(int cfd, int cs, char ** pn){
 //		writeToSocket(&manbf, cfd);
 		char * currver = (char*)malloc(sizeof(char)*8);
 		strcpy(currver, "currver");				
-		createProtocol(&patho, &currver, cfd ); 
+		createProtocol(&patho, &currver, &bufread2, cfd ); 
 		free(currver);	
 		if(cs==0){
 			free(bufread2); 
@@ -495,7 +484,7 @@ int createProj(int cfd){
 		if(strcmp(handshake1, "OK") == 0){
 			char * create = (char*)malloc(sizeof(char)*7);
 			strcpy(create, "create");				
-			createProtocol(&path, &create, cfd ); /* creates and send protocol to client */
+			createProtocol(&path, &create, &bufread2, cfd ); /* creates and send protocol to client */
 			free(create);
 		}else{
 
@@ -594,12 +583,12 @@ int checkoutProj(int cfd){
 		//printf("calling createprotoc\n");
 		char * checkout = (char*)malloc(sizeof(char)*9);
 		strcpy(checkout, "checkout");				
-		createProtocol(&patho, &checkout, cfd ); /* creates and send protocol to client */
+		createProtocol(&patho, &checkout, &bufread2, cfd ); /* creates and send protocol to client */
 		free(checkout);
 		free(bufread2); free(patho);
 	}
 
-	free(bufread2);
+//	free(bufread2);
 	return 0;
 }
 
@@ -673,22 +662,27 @@ int main( int argc, char** argv ){
 	/*obtain ID of main thread*/
 	mainboi = pthread_self();
 
-	/*setup sigaction*/	
-	struct sigaction sigstuff;
-	sigemptyset(&sigstuff.sa_mask);
-	sigstuff.sa_flags = SA_RESTART;	
-	sigstuff.sa_handler = handle_sigs;
+	/*setup sigset*/	
+	sigset_t sigset;
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGINT);
 
-	if(sigaction(SIGINT, &sigstuff, NULL)){
-		printf("Errno: %d  Message: %s  LINE#: %d\n", errno, strerror(errno));
+	if(pthread_sigmask(SIG_SETMASK, &sigset, NULL)!=0){
+		fprintf(stderr, "Errno: %d Message: %s LINE#: %d\n", errno, strerror(errno), __LINE__);
+		close(sockfd);
 		exit(2);
 	}
 
-	if(sigaction(SIGUSR1, &sigstuff, NULL)){
-		printf("Errno: %d  Message: %s LINE#: %d\n", errno, strerror(errno));
+	pthread_t sigthread;
+	sig_waiter_args arrgs;
+	arrgs.set = &sigset;
+	arrgs.sockfd = sockfd;
+	if ((pthread_create(&sigthread, NULL, handle_sigs, (void*)(&arrgs))) !=0){
+		fprintf(stderr, "Errno: %d Message: %s LINE#: %d\n", errno, strerror(errno), __LINE__);
+		close(sockfd);
 		exit(2);
 	}
-
+	printf("Sigint manager thread now running.\n");
 
 	//call accept
 	int cfd;
@@ -706,8 +700,9 @@ int main( int argc, char** argv ){
 		if( (cfd = accept(sockfd, (results->ai_addr), &(results->ai_addrlen))) == -1){
 			/*printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);*/ 
 			ap=0;
+			
 			//pthread_cancel(thread_1);
-			exit(2);	
+			//exit(2);	
 		}else{
 			printf( ANSI_COLOR_YELLOW "Client found!\n" ANSI_COLOR_RESET );
 	
@@ -721,12 +716,12 @@ int main( int argc, char** argv ){
 						//cont->thread_place = i;
 						//cancel&join
 						printf("position in th_container: %d\n", i);
-						void * result;
+				//		void * result;
 						if( (pthread_cancel((threads[i]).thread_id) ) !=0) {
-							printf(ANSI_COLOR_RED "Error: pthread_cancel failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
+							printf(ANSI_COLOR_RED "Pthread_cancel failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
 						}
-						if( (pthread_join(threads[i].thread_id, &result))!=0){
-							printf(ANSI_COLOR_RED "Error: pthread_join failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
+						if( (pthread_join(threads[i].thread_id, NULL))!=0){
+							printf(ANSI_COLOR_RED "Pthread_join failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
 						}
 						numthreads--;
 						//threads[i].is_done == -1;	//unnecessary?
@@ -749,8 +744,24 @@ int main( int argc, char** argv ){
 					pthread_yield();
 				}
 			}
-			
 		}		
 	}
-	return 0; 
+	printf("Main broken out of accept loop\n");
+	int w;
+	for(w=0; w<BACKLOG; w++){
+		if(threads[w].is_done != -1){
+			if( (pthread_join(threads[w].thread_id, NULL))==0){
+				printf("Joined thread %d\n", w); //exit(3);
+			}else{					
+				printf("Join failed on thread %d\n", w); //exit(3);
+			}
+		}
+	}
+
+	//cancel and join on sigthread
+	pthread_cancel(sigthread);
+	pthread_join(sigthread, NULL);
+	printf("sigthread cleaned up.\n");
+	close(sockfd);
+	return 0;
 }
