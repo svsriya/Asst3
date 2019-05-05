@@ -11,11 +11,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-
-#include "parseprotoc.c"
-#include "parseprotoc.h"
-#include "clientcommands.h"
-#include "clientcommands.c"
+#include "commitupdate.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -27,10 +23,40 @@
 
 int commit( char*, int );
 int update( char*, int );
-Manifest* createLive( Manifest* );
+Manifest* createLive( Manifest*, int );
+int readFromSocket( char**, int );
 
-Manifest* createLive( Manifest* client_man ) // generates the live hashcodes for each file in manifest
+int readFromSocket( char** buf, int sd )
 {
+	char buflen[10];
+	if( read(sd, buflen, sizeof(buflen)) == -1){
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+		return -1;
+	}
+
+	int len = charToInt((char*)buflen);
+	printf("Number of bytes being recieved: %d\n", len);
+	
+	*buf = (char*)malloc( len + 1 );
+	int rdres = 1;
+	int i = 0;
+	while( rdres > 0 ){
+		rdres = read( sd, *buf+i, len-i );
+		printf("rdres: %d\n", rdres);
+		if( rdres == -1 ){
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			return -1;
+		}
+		i += rdres;
+	}
+	(*buf)[len] = '\0';
+	printf( "message received from server: %s\n", *buf);	
+	return 0;
+}
+
+Manifest* createLive( Manifest* client_man, int cmd ) // generates the live hashcodes for each file in manifest
+{
+	// cmd: 0 is commit, 1 is update 
 	Manifest* live;
 	Manifest* lptr;
 	live = (Manifest*)malloc(sizeof(Manifest));
@@ -40,43 +66,255 @@ Manifest* createLive( Manifest* client_man ) // generates the live hashcodes for
 	live->hash = client_man->filepath;	// compute new hash
 	live->onServer = client_man->onServer;
 	live->removed = client_man->removed;
+	live->next = NULL;
 	lptr = live;
 	Manifest* cptr;
 	for( cptr = client_man->next; cptr != NULL; cptr = cptr->next )
-	{	// only create live nodes for files not removed or that are on the server
-		if( strcmp( cptr->removed, "1") == 0 || strcmp(cptr->onServer, "0") == 0 ) continue;
+	{	
+		// only create live nodes for files not removed or that are on the server
+		if( cmd == 0 && (strcmp( cptr->removed, "1") == 0 || strcmp(cptr->onServer, "0") == 0) ) continue;
+		if( cmd == 1 && strcmp( cptr->removed, "1") == 0 ) continue;
 		Manifest* newnode = (Manifest*)malloc(sizeof(Manifest));
 		newnode->projversion = cptr->projversion;
 		newnode->filepath = cptr->filepath;
 		newnode->onServer = cptr->onServer;
 		newnode->removed = cptr->removed;
 		newnode->hash = hashcode(newnode->filepath);
-		if( strcmp( newnode->hash, cptr->hash ) != 0 )
+		if( cmd == 0 && strcmp( newnode->hash, cptr->hash ) != 0 )
 		{	// new hash means new version
 			int num = atoi(cptr->vnum)+1;
 			char buf[11];
 			sprintf( buf, "%d", num);
-			newnode->vnum = buf;
+			newnode->vnum = (char*)malloc(strlen(buf) + 1);
+			newnode->vnum[0] = '\0';
+			strcat( newnode->vnum, buf );
 			//printf( "newnode->vnum = %s\n", newnode->vnum );	
 		}
 		else newnode->vnum = cptr->vnum;
 		lptr->next = newnode;
 		lptr = lptr->next;
 	}
+	lptr->next = NULL;
 	printf( "LIVE HASHES:\n" );	
 	printM(live);
 	return live;
 }
 
 int update( char* projname, int ssd ){
+	/*
+ *	1. Get the .s_man from the server
+ * 	2. Build Manifest for live, client, and server
+ * 	3. if server and client manifest are same version, check for uploads
+ * 	4. else check for MAD and errors 
+ * 	5. if .update is empty output that local project is up to date
+ * 	*/
 	//check that the proj exists
 	char* projpath = searchProj( projname );
 	if( projpath == NULL ){
 		printf( ANSI_COLOR_RED "Error: project not found in client\n" ANSI_COLOR_RESET );
 		return -1;
 	}
+			
+	// fetch server's .Manifest
+	// server's .Manifest = .s_man
+	// client's .Manifest = .Manifest
+	if( currentversion(&projname, ssd, 1) == -1 ) return -1;
+	char* sman = "./.s_man";
+	char* cman = (char*)malloc( strlen(projpath) + 11 );
+	cman[0] = '\0';
+	strcat( cman, projpath );
+	strcat( cman, "/.Manifest" );
 	
-	return 0;
+	// create the linked lists for manifests and live 
+	Manifest* s_man;
+	Manifest* c_man;
+	Manifest* live;
+	build( sman, &s_man );
+	build( cman, &c_man );
+	free(cman);
+	live = createLive( c_man, 1 );
+	// check for upload files
+	int upload = 0;	// will indicate if there are files to upload
+	if( strcmp( s_man->projversion, c_man->projversion ) == 0 )
+	{
+		// loop through the live manifest and server
+		Manifest* lptr;
+		for( lptr = live->next; lptr != NULL; lptr = lptr->next )
+		{
+			if( strcmp( lptr->onServer, "0" ) == 0 )
+			{
+				printf( ANSI_COLOR_GREEN "U\t%s\t%s\t%s\n" ANSI_COLOR_RESET, lptr->vnum, lptr->filepath, lptr->hash );
+				upload = 1;
+				continue;
+			}
+			// find the file on the server manifest
+			Manifest* sptr;
+			for( sptr = s_man->next; sptr != NULL && strcmp( sptr->filepath, lptr->filepath ) != 0; sptr = sptr->next );
+			if( sptr != NULL )
+			{
+				if( strcmp( sptr->hash, lptr->hash ) != 0 )
+				{
+					printf( ANSI_COLOR_GREEN "U\t%s\n" ANSI_COLOR_RESET, lptr->filepath );
+					upload = 1;
+				}
+			}
+		}
+		if( upload == 1 ){ 
+			printf( "Please upload the files listed above once upgraded\n" ); 
+		}	
+		else{
+			printf( "There are no updates to be made. The local project is up to date.\n" );
+		}		
+	} 
+	else
+	{
+		// check for MAD
+		// create .Update file
+		int ufd;
+		char* line;	
+		char* updatepath = (char*)malloc( strlen("/.Update") + strlen(projpath)+1 );
+		updatepath[0] = '\0';
+		strcat( updatepath, projpath );
+		strcat( updatepath, "/.Update" );
+		updatepath[strlen(updatepath)] = '\0';
+		if( (ufd = open( updatepath, O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH )) == -1 )
+		{
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+			return -1;
+		}
+		Manifest* sptr;
+		int error = 0;
+		for( sptr = s_man->next; sptr != NULL; sptr = sptr->next )
+		{	//make sure to check if the file was removed by the client
+			int found = 0;
+			Manifest* cptr;
+			for( cptr = c_man->next; cptr != NULL; cptr = cptr->next )
+			{
+				if( strcmp( cptr->filepath, sptr->filepath ) == 0 && 
+					strcmp( cptr->vnum, sptr->vnum ) != 0 && strcmp( cptr->removed, "0" ) == 0 )
+				{
+					// need to check the hash of the live version, if the hash is dif from client, ERROR, else M
+					found = 1;
+					Manifest* lptr;
+					for( lptr = live->next; lptr != NULL && strcmp(lptr->filepath, cptr->filepath) != 0; lptr = lptr->next );
+					if( error == 0 && strcmp( lptr->hash, cptr->hash ) == 0 )
+					{	// M	filepath\n
+						line = (char*)malloc( 2+strlen(sptr->filepath)+2 );
+						line[0] = '\0';
+						strcat( line, "M\t" );
+						strcat( line, sptr->filepath );
+						strcat( line, "\n" );
+						//write to update file
+						if( write( ufd, line, strlen(line) ) == -1 )
+						{
+							printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+							return -1;
+						}	 
+						free(line);
+					}
+					else //PRINT ERROR
+					{
+						printf( ANSI_COLOR_RED "%s\n" ANSI_COLOR_RESET, sptr->filepath );
+						error = 1;
+					}
+				} 
+			}
+			if( found == 0 )	//file is not in the client but is in the server, so A
+			{	
+				line = (char*)malloc( 2+strlen(sptr->filepath)+2 );
+				line[0] = '\0';
+				strcat( line, "A\t" );
+				strcat( line, sptr->filepath );
+				strcat( line, "\n" );
+				//write to update file
+				if( write( ufd, line, strlen(line) ) == -1 )
+				{
+					printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+					return -1;
+				}	 
+				free(line);
+			}
+		}
+		// if no error came up, check for deletes
+		// check that each file in the client is in the server, if not, then its a delete
+		if( error == 0 )
+		{
+			Manifest* cptr;
+			for( cptr = c_man->next; cptr != NULL; cptr = cptr->next )
+			{
+				Manifest* sptr;
+				for( sptr = s_man; sptr != NULL; sptr = sptr->next )
+				{
+					if( strcmp( sptr->filepath, cptr->filepath ) == 0 )
+						break;
+				}
+				if( sptr == NULL )	// filepath not found in server
+				{
+
+					line = (char*)malloc( 2+strlen(sptr->filepath)+2 );
+					line[0] = '\0';
+					strcat( line, "D\t" );
+					strcat( line, sptr->filepath );
+					strcat( line, "\n" );
+					//write to update file
+					if( write( ufd, line, strlen(line) ) == -1 )
+					{
+						printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+						return -1;
+					}	 
+					free(line);
+				}
+			}
+		}
+		close(ufd);
+		// if an error occurred, delete the .Update file and return -1
+		if( error == 1 )
+		{	// rm -rf path
+			char* cmd = (char*)malloc( strlen(updatepath) + 7 );
+			cmd[0] = '\0';
+			strcat( cmd, "rm -rf " );
+			strcat( cmd, updatepath );
+			if( system( cmd ) == -1 )
+			{
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+				return -1;
+			} 
+			printf( "The files listed above have conflicts. Please resolve these conflicts before updating.\n" );
+			return -1;
+		}
+		// if the .Update file is empty, output 'Up to date' 
+		// otherwise, print out the entire .Update file
+		struct stat file_stat;
+		char* filebuf;
+		if( stat( updatepath, &file_stat ) == -1 )
+		{	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+			return -1;
+		}
+		if( file_stat.st_size == 0 )
+			printf( "Project is up to date\n" );
+		else
+		{
+			filebuf = (char*)malloc( file_stat.st_size + 1 );
+			if( (ufd = open( updatepath, O_RDONLY )) == -1 )
+			{
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+				return -1;
+			}
+			if( read( ufd, filebuf, file_stat.st_size ) == -1 )
+			{	
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+				return -1;
+			}
+			printf( "%s\n", filebuf );
+			free( filebuf );
+		}
+		free(updatepath);
+		freeManifest( live );
+		freeManifest( c_man );
+		freeManifest( s_man );
+		return 0;
+	}
 }
 
 int commit( char* projname, int ssd )
@@ -86,7 +324,7 @@ int commit( char* projname, int ssd )
 		printf( ANSI_COLOR_RED "Error: project not found in client\n" ANSI_COLOR_RESET );
 		return -1; //EXIT NICELY 
 	}
-	//check whether .update exists, and if it does that its empty
+	//chek whether .update exists, and if it does that its empty
 	char* updatepath;
 	struct stat file_stat;
 	int sfd;
@@ -103,9 +341,9 @@ int commit( char* projname, int ssd )
 	free( updatepath );
 
 	// fetch server's .Manifest
-	// I'LL ADD IN ACTUAL STUFF LATER
 	// server's .Manifest = .s_man
 	// client's .Manifest = .Manifest
+	if( currentversion(&projname, ssd, 1) == -1 ) return -1;
 	char* sman = "./.s_man";
 	char* cman = (char*)malloc( strlen(projpath) + 11 );
 	cman[0] = '\0';
@@ -128,8 +366,8 @@ int commit( char* projname, int ssd )
 		free(cman);
 		return -1;
 	}
-	live = createLive( c_man );
-	printf( "live->vnum = %s\n", live->next->vnum );
+	live = createLive( c_man, 0 );
+
 	// WRITE .COMMIT
 	// <code><\t><live file version><\t><path><\t><live hash><\n>
 	int cmfd;
@@ -145,10 +383,8 @@ int commit( char* projname, int ssd )
         	return -1;
 	}
 	// check modify by looking at all the nodes in live and compare with server....n^2 time?
-	printf( "before for loop live->vnum = %s\n", live->next->vnum );
 	Manifest* lptr;
 	for( lptr = live->next; lptr != NULL; lptr = lptr->next ){	
-		printf( "before compare lptr->vnum = %s\n", lptr->vnum );
 		line = (char*)malloc( 1 + 1 + strlen(lptr->vnum) + 1 + strlen(lptr->filepath) + 1 + strlen(lptr->hash) + 2 );
 		line[0] = '\0';	
 		Manifest* sptr;	// find the same file in the server manifest
@@ -164,7 +400,7 @@ int commit( char* projname, int ssd )
 			strcat( line, "\t" );
 			strcat( line, lptr->hash );
 			strcat( line, "\n" );
-			printf( "lptr->vnum = %s\n", lptr->vnum );
+			//printf( "lptr->vnum = %s\n", lptr->vnum );
 			if( write( cmfd, line, strlen(line) ) == -1 )
                 	{
 	                	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
@@ -183,12 +419,13 @@ int commit( char* projname, int ssd )
 			cmd[0] = '\0';
 			strcat( cmd, "rm -rf " );
 			strcat( cmd, commitpath );
-			system( cmd );	//.commit deleted
+			if( system( cmd ) == -1 ){
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+			}	//.commit deleted
 			free( commitpath );
 			freeManifest(live);
 			freeManifest(s_man);
 			freeManifest(c_man);
-			// WRITE FAIL TO SERVER	
 			return -1;
 		}
 	}
@@ -220,6 +457,11 @@ int commit( char* projname, int ssd )
 		free(line);
 	}
 	// SEND .COMMIT TO THE SERVER
+	char* cmd = (char*)malloc(7);
+	cmd[0] = '\0'; 
+	strcat( cmd, "commit" );
+	writeToSocket( &cmd, ssd );
+	free(cmd);
 	// system( "rm -rf .s_man" );
 	printf( "commit successful! .Commit has been sent to the server. Please run \"push\" to save changes to repository.\n" ); 
 	freeManifest(live);
@@ -228,9 +470,8 @@ int commit( char* projname, int ssd )
 	free(commitpath);
 	return 0;
 }
-
+/*
 int main( int argc, char** argv )
 {
-	int res = commit( argv[1] );
 	return 0;
-}
+}*/
