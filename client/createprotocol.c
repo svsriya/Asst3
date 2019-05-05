@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-#include "zpipe.c"
+//#include "zpipe.c"
 #include "createprotocol.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
