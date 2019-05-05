@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <openssl/sha.h>
 #include <fcntl.h>
+#include "commands.h" 
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -18,26 +19,49 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-int commit( int );
+int upgrade( int );
+int destory( int );
+int deleteDir( char* );
+int readFromSock( int, char** );
 
-int commit( int csd )
+int upgrade( int csd )
 {
-/*	need to read in the proj name
- *	check that the project exists, write error or success to client
- * 	currentversion will also be read in with projname
- * 	Error can also be sent from the client
- *  	make a call to currver to send the manifest
- *  	wait for client to send either .Commit file or error
-*/
-	printf( "ENTERED COMMIT\n" );
-	char buflen[10];
+	// upgrade command recieved, so send "okay" to the client
+	char* success = "okay";
+	char* projname;
+	char* cmd = "upgrade";
+	char* msg;
+	writeToSocket( &success, csd );
+	readFromSock( csd, &projname );	// get the project name from the client
+	if( searchProj( projname ) == -5 ){
+		// project not found, send error 
+		char* err = "projnotfound";
+		writeToSocket( &err, csd );
+		return -1;
+	}
+	// until the message read is "end", keep reading
+	readFromSock( csd, &msg );
+	while( strcmp( msg, "end" ) != 0 )
+	{	// msg = path to a file needed, so send in createProtocol 
+		createProtocol( &msg, &cmd, csd );
+		free( msg );
+		readFromSock( csd, &msg );  
+	}
+	// send over the .Manifest
+	
+	return 0;
+}
+
+int readFromSock( int csd, char** buf )
+{
+	char buflen[11];
         if( read(csd, buflen, sizeof(buflen)) == -1){
                 printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 return -1;
         }
 
         int len = charToInt((char*)buflen);
-        printf("Number of bytes_projname being recieved: %d\n", len);
+        printf("Number of bytes being recieved: %d\n", len);
 	
 	char* bufread2 = (char*)malloc( len + 1 );
 	int rdres = 1;
@@ -52,30 +76,101 @@ int commit( int csd )
                 i += rdres;
         }
         bufread2[len] = '\0';
-        printf( "projname received from client: %s\n", bufread2);
-
-	if( searchProj(bufread2) == -5){
-		char len[10];
-
-                char * err = (char *)malloc(sizeof(char)* 27);
-                strcat(err,  "Error: project not found.\n");
-                sprintf(len, "%010d", strlen(err));
-                int i = 0;
-                int written;
-
-                writeToSocket(&err, csd);
-
-                printf(ANSI_COLOR_YELLOW "err sent to client\n" ANSI_COLOR_RESET, len);
-                free(bufread2);
-                free(err);
-                return -1;
-        }
-	else{	//write succes to client
-		char* suc = "projfound";
-		writeToSocket( &suc, csd );
-		printf( ANSI_COLOR_YELLOW "Projfound sent to the client\n" ANSI_COLOR_RESET );
-		free(bufread2);
-	}
-	// read in current version
-	
+        printf( "received from client: %s\n", bufread2);
+	*buf = bufread2;
+	return 0; 
 }
+
+int deleteDir( char* path )
+{
+	DIR* dir = opendir(path);
+	struct dirent* dp;
+	struct stat filestat;
+
+	if( !dir ){	
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+		return -1;
+	}
+	while( (dp = readdir(dir)) != NULL )
+	{	// construct the path from readdir
+		if( strcmp( dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0 )
+		{
+			char* tmp = (char*)malloc( strlen(path) + strlen(dp->d_name) + 2);
+			tmp[0] = '\0';
+			snprintf( tmp, strlen(path)+strlen(dp->d_name)+2, "%s/%s", path, dp->d_name);
+			printf( "current path: %s\n", tmp );
+			
+			if( stat(tmp, &filestat) == -1 ){
+				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+				return -1;
+			}
+			else{
+				if( S_ISDIR( filestat.st_mode ) == 1 )	//its a directory so call function again and then rmdir
+				{
+					if( deleteDir( tmp ) == -1 ) return -1;
+				}
+				else{	//its a file, so delete it
+					if( remove( tmp ) == -1 ){
+						printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+						return -1;
+					}
+					printf( "%s is a file that has been deleted\n", tmp );
+				}
+			}
+			free( tmp ); 	
+		}
+	}
+	closedir( dir );
+	if( rmdir( path ) == -1 ){	
+		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+		return -1;
+	}
+	printf( "%s is a directory that has been deleted\n", path );
+	return 0;
+}
+
+int destroy( int csd )
+{	// get the project name
+	char* projname;
+	char* projpath;	// ./root/projname
+	// write to server that command was recieved
+	char* send = "recieved";
+	writeToSocket( &send, csd );
+	if( readFromSock( csd, &projname ) == -1 ){
+		char* err = "error";
+		writeToSocket( &err, csd );
+		return -1;
+	}
+	if( searchProj( projname ) == -5 )
+	{
+		// project not found, send error 
+		char* err = "projnotfound";
+		writeToSocket( &err, csd );
+		return -1;
+	}
+	// LOCK REPOSITORY
+	// send the path to the project to traverseDir
+	// projpath = root/projname
+	projpath = (char*)malloc( 6 + strlen(projname) );
+	projpath[0] = '\0';
+	strcat( projpath, "root/" );
+	strcat( projpath, projname );  
+	if( deleteDir( projpath ) == -1 ){
+		char* err = "error";
+		writeToSocket( &err, csd );
+		return -1;
+	}
+	free(projpath);
+	char* msg = "success";
+	writeToSocket( &msg, csd );
+	return 0;
+}
+/*
+int main( int argc, char** argv )
+{
+	if( deleteDir( argv[1] ) == -1 )
+		printf( "DIR NOT DELETED\n" );
+	else
+		printf( "DIR DELETED SUCCESSFULLY\n" );
+	return 0;
+}*/

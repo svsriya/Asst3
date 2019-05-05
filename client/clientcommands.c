@@ -28,6 +28,7 @@ typedef struct manifest{
 	struct manifest* next;
 }Manifest;
 
+int destroy( char*, int );
 char* searchProj( char* );
 void build( char*, Manifest** );
 void writeM( char*, Manifest* );
@@ -36,6 +37,36 @@ char* hashcode( char* );
 int addM( char*, char* );
 int removeM( char*, char* );
 void freeManifest( Manifest* );
+
+int destroy( char* projname, int ssd )
+{
+	//send destroy command to server + projname
+	// read whether it was a succes or not
+	char* res1;
+	char* res2;
+	char* cmd = (char*)malloc( 8 );
+	cmd[0] = '\0';
+	strcat( cmd, "destroy" );
+	writeToSocket( &cmd, ssd );
+	free( cmd );
+	// read from server that it recieved destroy
+	readFromSocket( &res1, ssd );
+	if( strcmp( res1, "recieved" ) != 0 ){
+		printf( "Error: server was unable to read the command\n" );
+		return -1;
+	}	
+	writeToSocket( &projname, ssd );
+	readFromSocket( &res2, ssd );
+	if( strcmp( res2, "projnotfound" ) == 0 ){
+		printf( "Error: project not found on server.\n" );
+		return -1;
+	}
+	else if( strcmp( res2, "error" ) == 0 ){
+		printf( "Error: unable to destroy project\n" );
+		return -1;
+	}
+	return 0;
+}
 
 // returns the  path of the project if it exists, otherwise returns null
 char* searchProj( char* projname )
@@ -228,6 +259,7 @@ char* hashcode( char* filepath )
                 printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
         	return NULL;
 	}
+	filebuff[file_stat.st_size] = '\0';
         hash = SHA256( filebuff, strlen(filebuff),0);
 	 
 	char* result = (char*)malloc( (strlen(hash)*2) + 1);
