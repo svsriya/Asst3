@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <string.h>
+#include <signal.h>
 #include <pthread.h>
 
 #include "sendrcvfile.h"
@@ -24,6 +25,7 @@
 #define ANSI_COLOR_MAGENTA "\x1b[35m"
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
+#define BACKLOG 50
 
 /*
  * Setting up the server:
@@ -34,59 +36,62 @@
  *  5. call to accept (loop to accept multiple connections
 */
 
-struct int_container{
+/*struct int_container{
 	int cfd;
 	int thread_place;
 };
+*/
 
-
-th_container threads [5];
+/*globals*/
+th_container threads [BACKLOG];
 int numthreads;
+pthread_t mainboi; 
+int sockfd;
 
 int charToInt( char* );
 int checkoutProj(int);
 int searchProj(char *);
 int createProj(int);
 int writeToSocket( char **, int);
-int currver(int);
+int currver(int, int, char**);
 int fetchHistory(int);
 void * handleClient(void *);
-void * loopthreads(void *);
+//void * loopthreads(void *);
+void handle_sigs(int);
 
-void * loopthreads(void * ptr){
-	printf(ANSI_COLOR_YELLOW "loopthreads running...!\n" ANSI_COLOR_RESET);
-	int run = 1;
-	int numruns = 0;
-	while(run == 1){
-//		printf("numruns: %d\n", numruns);	
-		int i;
-		for(i=0; i<5; i++){
-			if( (threads[i].is_occ !=0) && (threads[i].is_done !=0)){
-
-				//make this spot empty and unfinished
-				threads[i].is_occ = 0;
-				threads[i].is_done = 0;
-
-				printf("position in th_container: %d\n", i);
-				void * result;
-				if( (pthread_cancel((threads[i]).thread_id) ) !=0) {
-					printf(ANSI_COLOR_RED "Error: pthread_cancel failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
-				}
-				if( (pthread_join(threads[i].thread_id, &result))!=0){
-					printf(ANSI_COLOR_RED "Error: pthread_join failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
-				}
-				
-				//set is_occ & is_done to 0
+void handle_sigs(int signum){
+	switch(signum){
+		case SIGINT: // if sigint is received by any of the threads; including mainboi
+			//printf("SIGINT caught.\n");
+			//close socket descriptor to stop accepting calls			
+			if(pthread_self() == mainboi){
+				printf("SIGINT caught by main thread.\n");
+				printf("Server disconnecting...\n");
+				close(sockfd);
+			}else{
+				printf("SIGINT caught by other thread.\n"); //redirect sigint to MAINthread
+				pthread_kill(mainboi, SIGUSR1);
+			}	
+			break;
+		
+		case SIGUSR1:
+			if(pthread_self() == mainboi){
+				printf("SIGINT ---> SIGUSR1 caught by main thread.\n");
+				printf("Server disconnecting...\n");
+				close(sockfd);
 			}
-		}
-		numruns++;
-	}		
+	}
+	return;
+
 }
 
-void * handleClient(void * int_cntr){
-	struct int_container * ctr = (struct int_container *)int_cntr;
-	int cfd = ctr->cfd;
-	
+
+
+void * handleClient(void * thr_cont){
+	struct th_container * th_ctr = (struct th_container *)thr_cont;
+	//int cfd = ctr->cfd;
+	int cfd = (*th_ctr).cfd;	
+
 	char buflen[10];
 	if( read(cfd, buflen, sizeof(buflen)) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
@@ -111,11 +116,10 @@ void * handleClient(void * int_cntr){
 	}	
 	bufread[len] = '\0';	
 	printf( "cmd received from client: %s\n", bufread );
-	//free(bufread);
 	
-	/* if bufread  = checkout. do below checkoutproj(proj, cfd) */
 	if(strcmp(bufread, "checkout") == 0){
 		int retval = checkoutProj(cfd);		
+		//sleep(15);
 		if(retval == -1){
 			printf("Error: Project checkout failed.\n"); exit(2);	
 		}
@@ -126,34 +130,27 @@ void * handleClient(void * int_cntr){
 		}
 		
 	}else if(strcmp(bufread, "currentversion") == 0){
-		int retval = currver(cfd);
+		int retval = currver(cfd, 0, NULL);
 		if(retval == -1){
-			printf("Error: Project creation failed.\n"); exit(2);
+			printf("Error: Fetching currentversion failed.\n"); exit(2);
 		}
 	}else if(strcmp(bufread, "history") == 0){
 		int retval = fetchHistory(cfd);
 		if(retval == -1){
 			printf("Error: Failed to obtain project history.\n"); exit(2);
 		}
+	}else{
+		//while(1);
+		printf("Error: invalid command.\n"); exit(2);
 	}	
-		
-	//if bufread == checkout then create protocol
-//	createGzip();
-//	sendProtocol("./protocol.txt", cfd);
-//	destroyProtocolFile();	
 
-	//createGzip();
 	//printf("Server disconnected from client.\n");
 	free(bufread);
-	//close(cfd); //close(sockfd);
+	close(cfd);
 
-	//update isdone!
-	struct int_container * ptr = (struct int_container *)int_cntr;	
-	threads[ptr->thread_place].is_done = 1;
+	(*th_ctr).is_done = 1;
 	
-	//thread safely exit here
-	void * retval;
-	pthread_exit(&retval);  //this function always succeeds
+	pthread_exit(NULL);  //this function always succeeds
 	return;
 }
 
@@ -216,32 +213,38 @@ int fetchHistory(int cfd){
 
 }		
 
-int currver(int cfd){
-	char buflen[10];
-	if( read(cfd, buflen, sizeof(buflen)) == -1){
-		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
-		return -1;	
-	}
-
-	int len = charToInt((char*)buflen);	
-	printf("Number of bytes_projname being recieved: %d\n", len);
-
-	//get projname from client
-	char* bufread2 = (char*)malloc( len + 1 );	
-//	bufread[0] = '\0';
-	int rdres = 1;
-	int i = 0;
-	while( rdres > 0 ){
-		rdres = read( cfd, bufread2+i, len-i );
-		printf("rdres: %d\n", rdres);
-		if( rdres == -1 ){	
-			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                	return -1;
+int currver(int cfd, int cs, char ** pn){
+	char * bufread2;
+	if(cs == 0){
+		char buflen[10];
+		if( read(cfd, buflen, sizeof(buflen)) == -1){
+			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
+			return -1;	
 		}
-		i += rdres;
-	}	
-	bufread2[len] = '\0';	
-	printf( "projname received from client: %s\n", bufread2);
+
+		int len = charToInt((char*)buflen);	
+		printf("Number of bytes_projname being recieved: %d\n", len);
+
+		//get projname from client
+		bufread2 = (char*)malloc( len + 1 );	
+	//	bufread[0] = '\0';
+		int rdres = 1;
+		int i = 0;
+		while( rdres > 0 ){
+			rdres = read( cfd, bufread2+i, len-i );
+			printf("rdres: %d\n", rdres);
+			if( rdres == -1 ){	
+				printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+				return -1;
+			}
+			i += rdres;
+		}	
+		bufread2[len] = '\0';	
+		printf( "projname received from client: %s\n", bufread2);
+
+	}else{
+		bufread2 = *pn;
+	}
 
 
 	if( searchProj(bufread2) == -5){
@@ -256,7 +259,9 @@ int currver(int cfd){
 		writeToSocket(&err, cfd);
 		
 		printf(ANSI_COLOR_YELLOW "err sent to client\n" ANSI_COLOR_RESET, len);
-		free(bufread2);
+		if(cs==0){
+			free(bufread2);
+		}
 		free(err);
 		return -1;
 
@@ -295,7 +300,10 @@ int currver(int cfd){
 		strcpy(currver, "currver");				
 		createProtocol(&patho, &currver, cfd ); 
 		free(currver);	
-		free(bufread2); free(patho);
+		if(cs==0){
+			free(bufread2); 
+		}
+		free(patho);
 		free(manbf);
 		return 0;
 	}
@@ -508,6 +516,7 @@ int searchProj(char * proj){
 	DIR * dirp;
 	char * path = (char *)malloc(6 + 1 + strlen(proj) + 1);
 	//snprintf(path, strlen(path), "./root/%s\n", proj);
+	path[0] = '\0';
 	strcat(path, "./root/");
 	strcat(path, proj);
 	printf("PATHSearch: %s\n", path);
@@ -637,7 +646,7 @@ int main( int argc, char** argv ){
 	}
 
 	//setup socket
-	int sockfd;
+	//int sockfd;
 	if( (sockfd = socket(results->ai_family, results->ai_socktype, results->ai_protocol)) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 		exit(2);
@@ -656,62 +665,92 @@ int main( int argc, char** argv ){
 	}
 
 	//call listen
-	if( listen(sockfd, 5) == -1){
+	if( listen(sockfd, BACKLOG) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 		exit(2);
 	}
+	
+	/*obtain ID of main thread*/
+	mainboi = pthread_self();
+
+	/*setup sigaction*/	
+	struct sigaction sigstuff;
+	sigemptyset(&sigstuff.sa_mask);
+	sigstuff.sa_flags = SA_RESTART;	
+	sigstuff.sa_handler = handle_sigs;
+
+	if(sigaction(SIGINT, &sigstuff, NULL)){
+		printf("Errno: %d  Message: %s  LINE#: %d\n", errno, strerror(errno));
+		exit(2);
+	}
+
+	if(sigaction(SIGUSR1, &sigstuff, NULL)){
+		printf("Errno: %d  Message: %s LINE#: %d\n", errno, strerror(errno));
+		exit(2);
+	}
+
 
 	//call accept
 	int cfd;
 	printf("Searching for connection....\n");
 
 	int ap = 1;
-	//create array of threads
-	//
-	
-	//create a thread that loops through threads list 
-	//checks is_occ = 1 and if is_done also = 1
-	//if both criteria met, joins on thread
-	pthread_t thread_1;
- 	if((pthread_create(&thread_1, NULL, loopthreads , "hi")!=0)){
-		printf(ANSI_COLOR_RED "Error: pthread_create failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); exit(3); 
+
+	int p;
+	for(p=0; p<BACKLOG;p++){
+		threads[p].is_done = -1;
 	}
  
 	numthreads = 0;
 	while(ap == 1){
 		if( (cfd = accept(sockfd, (results->ai_addr), &(results->ai_addrlen))) == -1){
-			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
+			/*printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);*/ 
 			ap=0;
-			pthread_cancel(thread_1);
+			//pthread_cancel(thread_1);
 			exit(2);	
 		}else{
 			printf( ANSI_COLOR_YELLOW "Client found!\n" ANSI_COLOR_RESET );
-			//create thread stuff here
-			struct int_container * cont = (struct int_container*)malloc(sizeof(struct int_container));
-			cont->cfd = cfd;
-			//search thru
-			//th_container threads [5];
+	
 			int i;
-			for(i=0; i<5; i++){
-				if(threads[i].is_occ == 0){
-					cont->thread_place = i;
-					threads[i].is_occ=1;
-					printf("placing thread in threads[%d]\n", i);
-					if((pthread_create(&(threads[i].thread_id), NULL, handleClient, cont)) !=0){
-						printf(ANSI_COLOR_RED "Error: pthread_create failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); exit(3); 
+		
+			int in_use=BACKLOG;
+			while(in_use == BACKLOG){
+				in_use = 0;
+				for(i=0; i<BACKLOG; i++){
+					if(threads[i].is_done == 1){
+						//cont->thread_place = i;
+						//cancel&join
+						printf("position in th_container: %d\n", i);
+						void * result;
+						if( (pthread_cancel((threads[i]).thread_id) ) !=0) {
+							printf(ANSI_COLOR_RED "Error: pthread_cancel failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
+						}
+						if( (pthread_join(threads[i].thread_id, &result))!=0){
+							printf(ANSI_COLOR_RED "Error: pthread_join failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
+						}
+						numthreads--;
+						//threads[i].is_done == -1;	//unnecessary?
 					}
-					numthreads++;
-					printf("numthreads: %d\n", numthreads);			
-					break;
+
+					if(threads[i].is_done == 1 || threads[i].is_done == -1){	
+						threads[i].is_done=0;
+						threads[i].cfd = cfd;
+						printf("placing thread in threads[%d]\n", i);
+						if((pthread_create(&(threads[i].thread_id), NULL, handleClient, (void*)&(threads[i]))) !=0){
+							printf(ANSI_COLOR_RED "Error: pthread_create failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); exit(3); 
+						}
+						numthreads++;
+						printf("numthreads: %d\n", numthreads);			
+						break;
+					}
+					in_use++;			
+				}
+				if(in_use==BACKLOG){
+					pthread_yield();
 				}
 			}
-			free(cont);	//is this the issue?
+			
 		}		
 	}
-	//receive number of bytes in message from client
-	//
-	//CMD setup : i.e. checkout
-	//EVERYTHING AFTER THIS POINT MUST BE A VOID POINTER SO THREADS CAN DO SHTUFF
-	
 	return 0; 
 }

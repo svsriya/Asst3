@@ -16,8 +16,9 @@
 
 typedef struct th_container{
 	pthread_t thread_id;
-	int is_done;	
-	int is_occ;
+	int is_done; // -1=available, 0=running, 1=done/waiting to be canceled&joined on
+	//int is_occ;
+	int cfd;
 }th_container;
 
 

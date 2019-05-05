@@ -250,7 +250,6 @@ void parseProtoc (char ** buf, int cm){
 			snprintf(filename, 10, "./s_history"); 
 			printf("FILE NAME:  %s\n", filename);
 			type = 3;
-
 		}
 
 		free(cmdd);

@@ -626,6 +626,7 @@ int main( int argc, char** argv ){
 //		free( bufferbytes );
 		free( configure_path );
 //		free( filebuff );
+		close(sd);
 	}
 	return 0;
 }
