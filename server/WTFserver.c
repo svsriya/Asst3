@@ -18,6 +18,9 @@
 #include "parseprotoc.c"
 #include "parseprotoc.h"
 
+#include "commands.c"
+#include "commands.h"
+
 #include "threadsetup.c"
 //#include "threadsetup.h"
 
@@ -127,7 +130,11 @@ void * handleClient(void * thr_cont){
 		if(retval == -1){
 			printf("Error: Failed to obtain project history.\n"); exit(2);
 		}
-	}else{
+	}else if( strcmp(bufread, "destroy") == 0){
+		if( destroy(cfd) == -1 )
+			printf( "Error: failed to destroy the project.\n"); exit(2);
+	}
+		else{
 		//while(1);
 		printf("Error: invalid command.\n"); exit(2);
 	}	

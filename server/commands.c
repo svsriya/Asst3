@@ -43,7 +43,7 @@ int upgrade( int csd )
 	readFromSock( csd, &msg );
 	while( strcmp( msg, "end" ) != 0 )
 	{	// msg = path to a file needed, so send in createProtocol 
-		createProtocol( &msg, &cmd, csd );
+		//createProtocol( &msg, &cmd, csd );
 		free( msg );
 		readFromSock( csd, &msg );  
 	}
