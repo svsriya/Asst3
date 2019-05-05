@@ -161,6 +161,7 @@ int writeToSocket(char ** buffer, int sd){
 		i += wtres;
 	}
 	printf( ANSI_COLOR_MAGENTA "sent2server: %s\n" ANSI_COLOR_RESET, *buffer );
+	return 0;
 }
 
 
@@ -631,6 +632,10 @@ int main( int argc, char** argv ){
 			if( update( argv[2], sd ) == -1 ){
 				printf( "Error: failed to update project.\n" );
 			}
+		}else if( strcmp( argv[1], "destroy" ) == 0 ){
+			if( destroy( argv[2], sd ) == -1 ){
+				printf( "Error: failed to destroy project.\n" );
+			} 
 		}
 		
 			

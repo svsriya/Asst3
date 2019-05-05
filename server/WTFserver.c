@@ -608,11 +608,12 @@ int main( int argc, char** argv ){
 		if(retval == -1){
 			printf("Error: Failed to obtain project history.\n"); exit(2);
 		}
-	}else if( strcmp(bufread, "commit" ) == 0 ){
-		if( commit( cfd ) == -1 ){
-			printf( "Error: failed to commit\n" );	
-		}	
-	}		
+	}
+	else if( strcmp( bufread, "destroy" ) == 0 ){
+		if( destroy( cfd ) == -1 ){
+			printf( "Error: Failed to destroy project\n" );
+		}		
+	}
 	//if bufread == checkout then create protocol
 //	createGzip();
 //	sendProtocol("./protocol.txt", cfd);
