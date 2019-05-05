@@ -1,0 +1,2 @@
+sendsman:-3:22:./root/mydir/.Manifest:39:1
+Filename	Version	On Serv	Removed	Hash:

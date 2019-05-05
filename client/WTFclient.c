@@ -17,6 +17,9 @@
 #include "clientcommands.c"
 #include "clientcommands.h"
 
+#include "createprotocol.c"
+#include "createprotocol.h"
+
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -169,10 +172,6 @@ int currentversion(char ** projname, int sd, int cm){
 //	buffer[0]='\0';
 	strcpy(cmd, "currentversion");
 	
-	//sprintf( num, "%010d", strlen(buffer) );
-	//strcat( num, ":\0" );
-
-	//first send bytes "create"
 	writeToSocket(&cmd, sd);
 	free(cmd);
 
@@ -223,6 +222,14 @@ int currentversion(char ** projname, int sd, int cm){
 		free(bufferbytes);
 		return -1;
 	}else{
+	
+		//openemptyzip
+	/*	if(openemptyzip(&bufferbytes, bufflen) == -1){
+			return -1;
+		}
+
+		unzip();
+	*/
 		parseProtoc(&bufferbytes, cm);			
 		if(cm == 0){
 			char * cmd = (char*)malloc(sizeof(char)*13);
@@ -619,13 +626,13 @@ int main( int argc, char** argv ){
 			int retval;
 			if( (retval = history(&argv[2], sd)) == -1){
 				printf("Error. Failed to obtain project history.\n");
-			}
-		
+			}	
 		}	
 		freeaddrinfo( result );
 //		free( bufferbytes );
 		free( configure_path );
 //		free( filebuff );
+		close(sd);
 	}
 	return 0;
 }

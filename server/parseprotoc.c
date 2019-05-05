@@ -22,9 +22,11 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 #include "parseprotoc.h"
+
+
 #include "zlib.h"
 #include <assert.h>
-#include "zpipe.c"
+//#include "zpipe.c"
 
 void parseProtoc (char **, int);
 void createDir (int, char **);
