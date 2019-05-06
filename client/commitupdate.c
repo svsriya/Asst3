@@ -119,10 +119,12 @@ int update( char* projname, int ssd ){
 	}
 			
 	// fetch server's .Manifest
-	// server's .Manifest = .s_man
+	// server's .Manifest = .s_manproj<projname>
 	// client's .Manifest = .Manifest
 	if( currentversion(&projname, ssd, 1) == -1 ) return -1;
-	char* sman = "./.s_man";
+	char* sman = (char*)malloc( strlen(projname) + 11 );
+	sman[0] = '\0';
+	snprintf( sman, strlen(projname)+11, ".s_manproj%s", projname );
 	char* cman = (char*)malloc( strlen(projpath) + 11 );
 	cman[0] = '\0';
 	strcat( cman, projpath );
@@ -135,6 +137,7 @@ int update( char* projname, int ssd ){
 	build( sman, &s_man );
 	build( cman, &c_man );
 	free(cman);
+	free(sman);
 	live = createLive( c_man, 1 );
 	// check for upload files
 	int upload = 0;	// will indicate if there are files to upload
@@ -476,7 +479,7 @@ int commit( char* projname, int ssd )
 
 	// send "commit" to the server
 	// fetch server's .Manifest
-	// server's .Manifest = .s_man
+	// server's .Manifest = .s_manproj<projname>
 	// client's .Manifest = .Manifest
 		
 	char* cmd = "commit";
@@ -496,7 +499,9 @@ int commit( char* projname, int ssd )
 	// send buffer to parseprotocol to create manifest
 	parseProtoc( &buf, 1 );	
 	// now .s_man exists!
-	char* sman = "./.s_man";
+	char* sman = (char*)malloc( strlen(projname)+11);
+	sman[0] = '\0';
+	snprintf( sman, strlen(projpath)+11, ".s_manproj%s", projname );
 	char* cman = (char*)malloc( strlen(projpath) + 11 );
 	cman[0] = '\0';
 	strcat( cman, projpath );
@@ -509,6 +514,7 @@ int commit( char* projname, int ssd )
 	build( sman, &s_man );
 	build( cman, &c_man );
 	free(cman);
+	free(sman);
 	if( strcmp(s_man->projversion, c_man->projversion) != 0 )
 	{
 		printf( "Error: project is not up to date. Please run update on your project before running commit.\n" );

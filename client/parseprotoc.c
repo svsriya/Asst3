@@ -119,6 +119,10 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 		path = path+7;
 		path2 = path2+7;
 	}
+	else if( strncmp( path, "root/", 5 ) == 0 ){
+		path = path+5;
+		path2 = path2+5;
+	}
 	
 	char * dir = dirname(path);
 	char * base = basename(path2);

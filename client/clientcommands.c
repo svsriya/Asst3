@@ -326,7 +326,7 @@ int addM( char* projname, char* filename )
 	ptr->vnum = (char*)malloc( 2 );
 	ptr->vnum[0] = '\0';
 	strcat( ptr->vnum, "0" );
-	//ptr->hash = hashcode(filename);
+	ptr->hash = hashcode(filename);
 	if( ptr->hash == NULL ) return -1;
 	ptr->onServer = (char*)malloc( 2 );
 	ptr->onServer[0] = '\0';
@@ -341,6 +341,7 @@ int addM( char* projname, char* filename )
 	freeManifest( head );
 	free(manpath);
 	printf( ANSI_COLOR_YELLOW "File has been added to .Manifest\n" ANSI_COLOR_RESET );
+	return 0;
 }
 
 int removeM( char* projname, char* filename )

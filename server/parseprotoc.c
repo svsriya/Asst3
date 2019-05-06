@@ -118,8 +118,8 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 	char * path2 = malloc(filename_size +1);
 	path2[0] = '\0';
 	snprintf(path2, filename_size+1, newfilename);
-		
-/*	if(strncmp(path, "./root", 6) == 0){
+/*		
+	if(strncmp(path, "./root", 6) == 0){
 		//printf("root in path");
 		path = path+7;
 		path2 = path2+7;
