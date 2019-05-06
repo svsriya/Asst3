@@ -105,6 +105,7 @@ void build( char* manpath, Manifest** head )
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 return;
 	}
+	close(fd);
 	mbuffer[file_stat.st_size] = '\0';
 	// 2. skip first two lines of the manifest and start adding to linked list
 	int i;
@@ -225,6 +226,7 @@ void writeM( char* manpath, Manifest* head )
 		}	
 		free(buff);
 	}
+	close(fd);
 }
 
 void printM( Manifest* head )
@@ -260,7 +262,8 @@ char* hashcode( char* filepath )
         	return NULL;
 	}
 	filebuff[file_stat.st_size] = '\0';
-        hash = SHA256( filebuff, strlen(filebuff),0);
+        close(fd);
+	hash = SHA256( filebuff, strlen(filebuff),0);
 	 
 	char* result = (char*)malloc( (strlen(hash)*2) + 1);
 	result[0] = '\0';
@@ -323,7 +326,7 @@ int addM( char* projname, char* filename )
 	ptr->vnum = (char*)malloc( 2 );
 	ptr->vnum[0] = '\0';
 	strcat( ptr->vnum, "0" );
-	ptr->hash = hashcode(filename);
+	//ptr->hash = hashcode(filename);
 	if( ptr->hash == NULL ) return -1;
 	ptr->onServer = (char*)malloc( 2 );
 	ptr->onServer[0] = '\0';
@@ -396,7 +399,7 @@ void freeManifest( Manifest* head )
 		free(prev->vnum);
 		free(prev->onServer);
 		free(prev->removed);
-		free(prev->hash);
+//		free(prev->hash);
 		free(prev);
 	}
 }
