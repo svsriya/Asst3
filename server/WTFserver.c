@@ -47,8 +47,11 @@ th_container threads [BACKLOG];
 int numthreads;
 pthread_t mainboi; 
 int sockfd;
+PROJECT * PROJECTS_LL = NULL;
+//pthread_mutex_t LL_lock = PTHREAD_MUTEX_INITIALIZER;
 
 
+/*function prototypes*/
 int charToInt( char* );
 int checkoutProj(int);
 int searchProj(char *);
@@ -56,9 +59,59 @@ int createProj(int);
 int writeToSocket( char **, int);
 int currver(int, int, char**);
 int fetchHistory(int);
+
 void * handleClient(void *);
-//void * loopthreads(void *);
 void * handle_sigs(void *);
+
+/*linked list related*/
+PROJECT ** searchinLL(char **, PROJECT **);
+void addToLL(char **);
+
+PROJECT ** searchinLL(char ** projname, PROJECT ** projstruct){
+	PROJECT * head = PROJECTS_LL;
+	PROJECT * curr = head;
+
+	while(curr!=NULL){
+		printf("searching...\n");
+		if(curr->projname == *projname){
+			*projstruct = curr;
+			printf("match found!\n");
+			return projstruct;
+		}else{
+			curr=curr->next;
+		}
+	}
+	return NULL;
+}
+
+void addToLL(char ** projname){
+	printf(ANSI_COLOR_CYAN "IN ADDTOLL.\n" ANSI_COLOR_RESET);
+	PROJECT * newproj = (PROJECT*)malloc(sizeof(PROJECT)*1); //create new LL
+	newproj->proj_lock = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER; //initialize projlock
+
+	//initialize projname
+	newproj->projname = (char*)malloc(sizeof(char)*(strlen(*projname) + 1));
+	strcpy(newproj->projname, *projname); 
+
+	//set numthreads to 0 and init lock
+	newproj->num_threads = 0;
+	newproj->numthread_lock = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+
+	//set destroy status to 0
+	newproj->destroy = 0;
+	
+	//adding to LL here//
+	if(PROJECTS_LL == NULL){
+		printf("PROJECTS_LL is null\n");
+		PROJECTS_LL = newproj;
+	}else{
+		newproj->next = PROJECTS_LL;
+		PROJECTS_LL = newproj;
+	}
+
+	return;
+}
+
 
 void * handle_sigs(void * args){
 	sig_waiter_args * swargs = (sig_waiter_args *)args;
@@ -66,14 +119,13 @@ void * handle_sigs(void * args){
 	printf("hangle_sigs thread blocking till SIGINT becomes pending...\n");	
 
 	if(sigwait(swargs->set, &signum)!= 0){
-		fprintf(stderr, "Errno: $d Msg: %s LINE#: %d", errno, strerror(errno), __LINE__); exit(1);
+		fprintf(stderr, "Errno: %d Msg: %s LINE#: %d", errno, strerror(errno), __LINE__); exit(1);
 	}
 
 	printf("Caught SIGINT. Shutting down Server...\n");
 	shutdown(swargs->sockfd, SHUT_RDWR);
 	pthread_exit(NULL);
 	//return;
-
 }
 
 
@@ -107,38 +159,45 @@ void * handleClient(void * thr_cont){
 	}	
 	bufread[len] = '\0';	
 	printf( "cmd received from client: %s\n", bufread );
+
+	//LOCK LL
 	
 	if(strcmp(bufread, "checkout") == 0){
+	
 		int retval = checkoutProj(cfd);		
 		//sleep(15);
 		if(retval == -1){
-			printf("Error: Project checkout failed.\n"); exit(2);	
+			printf("Error: Project checkout failed.\n"); //exit(2);	
 		}
 	}else if(strcmp(bufread, "create") == 0){
 		int retval = createProj(cfd);
 		if(retval == -1){
-			printf("Error: Project creation failed.\n"); exit(2);
-		}
+			printf("Error: Project creation failed.\n"); //exit(2);
+		}else if(retval == -3){
+			printf("Project created in server, not sent to client. Client already posesses project.\n");
+		}/*else add to LL*/
+
 		
 	}else if(strcmp(bufread, "currentversion") == 0){
 		int retval = currver(cfd, 0, NULL);
 		if(retval == -1){
-			printf("Error: Fetching currentversion failed.\n"); exit(2);
+			printf("Error: Fetching currentversion failed.\n");// exit(2);
 		}
 	}else if(strcmp(bufread, "history") == 0){
 		int retval = fetchHistory(cfd);
 		if(retval == -1){
-			printf("Error: Failed to obtain project history.\n"); exit(2);
+			printf("Error: Failed to obtain project history.\n");// exit(2);
 		}
 	}else if( strcmp(bufread, "destroy") == 0){
-		if( destroy(cfd) == -1 )
-			printf( "Error: failed to destroy the project.\n"); exit(2);
-	}
-		else{
+		if( destroy(cfd) == -1 ){
+			printf( "Error: failed to destroy the project.\n"); //exit(2);
+		}
+	}else{
 		//while(1);
-		printf("Error: invalid command.\n"); exit(2);
+		printf("Error: invalid command.\n"); //exit(2);
 	}	
 
+	//pthread_mutex_unlock(&LL_lock);
 	//printf("Server disconnected from client.\n");
 	free(bufread);
 	close(cfd);
@@ -151,6 +210,7 @@ void * handleClient(void * thr_cont){
 
 
 int fetchHistory(int cfd){
+
 	char buflen[10];
 	if( read(cfd, buflen, sizeof(buflen)) == -1){
 		printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
@@ -174,9 +234,9 @@ int fetchHistory(int cfd){
 		}
 		i += rdres;
 	}	
-
 	bufread2[len] = '\0';	
 	printf( "projname received from client: %s\n", bufread2);
+
 
 	if( searchProj(bufread2) == -5){
 		//createProtocol("Error: project not found.\n", cfd);
@@ -242,7 +302,54 @@ int currver(int cfd, int cs, char ** pn){
 		bufread2 = *pn;
 	}
 
+	//lock bigLL
+	//pthread_mutex_lock(&LL_lock);
+/*	PROJECT ** projstruct;
+	PROJECT * astruct = (PROJECT*)malloc(sizeof(PROJECT));
+	//search for Proj in LL
+	if((projstruct = searchinLL(&bufread2, &astruct)) == NULL){
+		printf("Error: project not found.\n");
+		//unlock bigLL mutex
+		char len[10];
+		char * err = (char *)malloc(sizeof(char)* 27);
+		strcat(err,  "Error: project not found.\n");
+		sprintf(len, "%010d", strlen(err)); 
+		int i = 0;
+		//int written;
 
+		writeToSocket(&err, cfd);
+		
+		pthread_mutex_unlock(&LL_lock);
+		return -1;
+	}else{
+		//unlock big LL
+		pthread_mutex_unlock(&LL_lock);
+		//lock struct
+		pthread_mutex_lock(&((*projstruct)->proj_lock));
+		
+		//lock numthread_lock
+		pthread_mutex_lock(&((*projstruct)->numthread_lock));
+			(*projstruct)->num_threads = ((*projstruct)->num_threads) + 1;
+		pthread_mutex_unlock(&((*projstruct)->numthread_lock)); //unlock numthread lock after incrementing
+
+		if((*projstruct)->destroy == 1){
+			printf("Error: project does not exist.\n");
+			pthread_mutex_unlock(&((*projstruct)->proj_lock));
+			char len[10];
+			char * err = (char *)malloc(sizeof(char)* 27);
+			strcat(err,  "Error: project not found.\n");
+			sprintf(len, "%010d", strlen(err)); 
+			int i = 0;
+			//int written;
+
+			writeToSocket(&err, cfd);
+			
+			//pthread_mutex_unlock(&((*projstruct)->proj_lock));
+			return -1;
+		}
+
+	}
+	free(astruct);*/
 	if( searchProj(bufread2) == -5){
 		//createProtocol("Error: project not found.\n", cfd);
 		char len[10];
@@ -301,8 +408,14 @@ int currver(int cfd, int cs, char ** pn){
 		}
 		free(patho);
 		free(manbf);
-		return 0;
+		close(manf);
+		//return 0;
 	}
+
+/*	pthread_mutex_lock(&((*projstruct)->numthread_lock));
+		(*projstruct)->num_threads = ((*projstruct)->num_threads) - 1;
+	pthread_mutex_unlock(&((*projstruct)->numthread_lock));*/
+	return 0;
 }
 
 
@@ -367,6 +480,26 @@ int createProj(int cfd){
 	bufread2[len] = '\0';	
 	printf( "projname received from client: %s\n", bufread2);
 
+	/*pthread_mutex_lock(&LL_lock);
+	PROJECT ** projstruct;
+	PROJECT * astruct = (PROJECT*)malloc(sizeof(PROJECT));
+	if((projstruct = searchinLL(&bufread2, &astruct)) == NULL){
+		addToLL(&bufread2);	
+		pthread_mutex_unlock(&LL_lock);	
+	}else{
+		//acquire lock
+		pthread_mutex_unlock(&LL_lock);
+		pthread_mutex_lock(&((*projstruct)->proj_lock));
+		
+		printf("Error: project already exists.\n");
+	//	writeToSocket(&err, cfd);	
+	//	pthread_mutex_unlock(&((*projstruct)->proj_lock));
+		//return -1;
+		
+
+	}
+	free(astruct);
+	*/
 
 	//search to see if proj already exists
 	
@@ -377,11 +510,12 @@ int createProj(int cfd){
 		sprintf(len, "%010d", strlen(err)); 
 	
 		writeToSocket(&err, cfd);
-
+		//pthread_mutex_unlock(&((*projstruct)->proj_lock));
 		printf(ANSI_COLOR_YELLOW "err sent to client\n" ANSI_COLOR_RESET, len);
 		free(bufread2);	 free(err);
 
 	}else{ //create the project
+		printf(ANSI_COLOR_CYAN "creating project...\n" ANSI_COLOR_RESET);
 		char * path = (char *)malloc(6 + 1 + strlen(bufread2) + 1);
 		//snprintf(path, strlen(path), "./root/%s\n", proj);
 		strcat(path, "./root/");
@@ -449,25 +583,32 @@ int createProj(int cfd){
 
 
 		free(maindir);
+		close(hisfd); close(manfd);// closedir(bufread2);
 		//char * patho = (char *)malloc(6 + 1 + strlen(bufread2) + 1);
 		//snprintf(path, strlen(path), "./root/%s\n", proj);
 		//strcat(patho, "./root/");
 		//strcat(patho, bufread2);	
 		
 
+		//addToLL(&bufread2);
+		
 		//write to client -- "Project created in server" -- HANDSHAKE
 		char * handshake0 = (char*)malloc(sizeof(char)*28);
 		handshake0[0] = '\0';
-		strcat(handshake0, "Project created in Server\n");
+		strcat(handshake0, "Project created in Server.\n");
 		writeToSocket(&handshake0, cfd);
 
 		//CREATE protocol only if receive OK from client
 		char handlen[10];
-		if( read(cfd, handlen, sizeof(handlen)) == -1){
+
+	//	int rdr = 1;
+	//		int p = 0;
+		
+		if(read(cfd, handlen, sizeof(handlen)) == -1){
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__); 
 			return -1;	
 		}
-	
+		
 		int hlen = charToInt((char*)handlen);	
 		printf("Number of bytes_hand1 being recieved: %d\n", hlen);
 	
@@ -497,14 +638,16 @@ int createProj(int cfd){
 
 			free(handshake0); free(handshake1);
 			free(bufread2);
-			return 0;
+			return -1;
 		}
 
 		free(handshake0); free(handshake1);
 		free(bufread2); //free(patho);
-
+		//printf(ANSI_COLOR_CYAN"unlocking project mutex now.\n" ANSI_COLOR_RESET);	
+		//pthread_mutex_unlock(&((*projstruct)->proj_lock));
+		return 0;
 	}
-	
+
 }
 
 
@@ -724,9 +867,9 @@ int main( int argc, char** argv ){
 						//cancel&join
 						printf("position in th_container: %d\n", i);
 				//		void * result;
-						if( (pthread_cancel((threads[i]).thread_id) ) !=0) {
-							printf(ANSI_COLOR_RED "Pthread_cancel failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
-						}
+						pthread_cancel((threads[i]).thread_id);
+						//	printf(ANSI_COLOR_RED "Pthread_cancel failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
+						
 						if( (pthread_join(threads[i].thread_id, NULL))!=0){
 							printf(ANSI_COLOR_RED "Pthread_join failed.  LINE: %d\n" ANSI_COLOR_RESET, __LINE__); //exit(3);
 						}

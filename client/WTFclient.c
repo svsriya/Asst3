@@ -40,6 +40,9 @@ int checkout (char **, int);
 int create (char **, int);
 int currentversion(char **, int, int);
 int history (char **, int);
+int writeToSocket( char **, int);
+int searchProject(char *);
+
 
 int history(char ** projname, int sd){
 	char * cmd = (char*)malloc(sizeof(char)*8);
@@ -97,8 +100,9 @@ int history(char ** projname, int sd){
 		free(bufferbytes);
 
 		//now sys call to output to stdout
-		char * cmd = (char*)malloc(sizeof(char)*12);
-		strcpy(cmd, "cat history");
+		char * cmd = (char*)malloc(sizeof(char)*(16+strlen(*projname)+1));
+		cmd[0]='\0';
+		snprintf(cmd, 16+strlen(*projname)+1+1, "cat ./.s_history%s", *projname);
 		if((system(cmd))==-1){
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                      	free(cmd);
@@ -111,9 +115,6 @@ int history(char ** projname, int sd){
 	return 0;
 }
 
-int writeToSocket( char **, int);
-int searchProject(char *);
-
 int searchProject(char * proj){
 	DIR * dirp;
 	char * path = (char *)malloc(2 + strlen(proj) + 1);
@@ -121,8 +122,9 @@ int searchProject(char * proj){
 	path[0]='\0';
 	strcat(path, "./");
 	strcat(path, proj);
-	//printf("PATHSearch: %s\n", path);
+	printf("PATHSearch: %s\n", path);
 	if((dirp = opendir(path)) == NULL){
+		printf(ANSI_COLOR_CYAN "project not found in client.\n" ANSI_COLOR_RESET);
 		free(path);
 		return -5;
 	}	
@@ -234,13 +236,17 @@ int currentversion(char ** projname, int sd, int cm){
 	*/
 		parseProtoc(&bufferbytes, cm);			
 		if(cm == 0){
-			char * cmd = (char*)malloc(sizeof(char)*13);
-			strcpy(cmd, "cat ./.s_man");
+			char * cmd = (char*)malloc(sizeof(char)*(12+strlen(*projname)+1));
+			cmd[0]='\0';
+			//strcpy(cmd, "cat ./.s_man%s", *projname);
+			snprintf(cmd, 12+strlen(*projname)+1+1, "cat ./.s_man%s", *projname);
 
 			if(system(cmd)==-1){
 				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
-                       		return -1;
-			}	
+                       		free(cmd);
+				return -1;
+			}
+			free(cmd);	
 		}	
 		free(bufferbytes);
 	}
@@ -316,9 +322,10 @@ int create (char ** projname, int sd){
 		free(bufferbytes);
 		return -1;
 
-	}else if(strcmp(bufferbytes, "Project created in Server\n") == 0){
+	}else if(strcmp(bufferbytes, "Project created in Server.\n") == 0){
 		int search_res = searchProject(*projname);
 		if(search_res == -5){
+			printf(ANSI_COLOR_CYAN "project doesn't exist on client side... sending OK to server.\n" ANSI_COLOR_RESET);
 			char * handshake1 = (char *)malloc(sizeof(char)*3);
 		
 			handshake1[0]='\0';

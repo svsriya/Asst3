@@ -1,7 +1,0 @@
-3941
-
-
-1136
-I have made some changes to a file which has been committed a few times as part of a group of files, but now want to reset/revert the changes on it back to a previous version.
-
-I have done a git log along with a git diff to find the revision I need, but just have no idea how to get the file back to its former state in the past.
