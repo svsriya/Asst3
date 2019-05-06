@@ -162,6 +162,7 @@ void * handleClient(void * thr_cont){
 
 	//LOCK LL
 	
+	pthread_mutex_unlock(&LL_lock);
 	if(strcmp(bufread, "checkout") == 0){
 	
 		int retval = checkoutProj(cfd);		
@@ -197,7 +198,7 @@ void * handleClient(void * thr_cont){
 		printf("Error: invalid command.\n"); //exit(2);
 	}	
 
-	//pthread_mutex_unlock(&LL_lock);
+	pthread_mutex_unlock(&LL_lock);
 	//printf("Server disconnected from client.\n");
 	free(bufread);
 	close(cfd);
@@ -667,6 +668,7 @@ int searchProj(char * proj){
 	}
 	
 	free(path);
+	closedir(dirp);
 	//printf("done search\n");
 	return 0;	
 

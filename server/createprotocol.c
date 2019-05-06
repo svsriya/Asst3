@@ -159,6 +159,7 @@ void traverseDir( char ** path, char ** protoc){
 					printf("file --> protocol successful \n");
 				//	return;
 				}
+				close(ffd);
 			}
 			free(tmp);
 		}
