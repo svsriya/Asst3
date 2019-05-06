@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "commitupdate.h"
+#include "createprotocol.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -21,6 +22,7 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
+int push( char*, int );
 int commit( char*, int );
 int update( char*, int );
 int upgrade( char*, int );
@@ -263,7 +265,7 @@ int update( char* projname, int ssd ){
 					if( strcmp( sptr->filepath, cptr->filepath ) == 0 )
 						break;
 				}
-				if( sptr == NULL )	// filepath not found in server
+				if( strcmp( cptr->removed, "0" ) == 0 && sptr == NULL )	// filepath not found in server
 				{
 					line = (char*)malloc( 2+strlen(cptr->filepath)+2 );
 					line[0] = '\0';
@@ -323,21 +325,40 @@ int update( char* projname, int ssd ){
 			filebuf[file_stat.st_size] = '\0';
 			printf( "%s\n", filebuf );
 			free( filebuf );
+			close(ufd);
 		}
 		free(updatepath);
 		freeManifest( live );
 		freeManifest( c_man );
 		freeManifest( s_man );
+		printf( ".Update has been created! Please run upgrade to make changes.\n" );
 		return 0;
 	}
 }
 
 int upgrade( char* projname, int ssd )
 {
+	// send the upgrade command to the server, read back the "okay", write the project name to server, read back whether it exists or not in the server
+	char* cmd = "upgrade";
+	char* rcv;
+	char* end = "end";
+	writeToSocket( &cmd, ssd );
+	if( readFromSocket( &rcv, ssd ) == -1 ) return -1;	// reads "okay" from server
+	free(rcv);
+	writeToSocket( &projname, ssd );	// send the project name
+	readFromSocket( &rcv, ssd );	// read whether found or not
+	if( strcmp( rcv, "projnotfound" ) == 0 )
+	{
+		free(rcv);
+		printf( "Error: project not found by the server\n" );
+		return -1;
+	}  
+	free(rcv);
 	// check that the projpath exists
 	char* projpath = searchProj( projname );
 	if( projpath == NULL ){
 		printf( ANSI_COLOR_RED "Error: project not found in client\n" ANSI_COLOR_RESET );
+		writeToSocket( &end, ssd );
 		return -1; //EXIT NICELY 
 	}
 	// check that there is a .Update file, and if there is, whether it is empty or not
@@ -352,43 +373,82 @@ int upgrade( char* projname, int ssd )
 	if( stat(updatepath, &file_stat) == -1 ){
 		printf( "Error: no .Update file was found on the client. Please run \"update\" before upgrading.\n" );
 		free( updatepath );
+		writeToSocket( &end, ssd );
 		return -1;
 	}else if( file_stat.st_size == 0 ){
 		printf( "Project is up to date.\n" );
 		if( remove( updatepath ) == -1 ){
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
 		}
+		writeToSocket( &end, ssd );
 		return 0;
 	}
 
-	// send the upgrade command to the server, read back the "okay", write the project name to server, read back whether it exists or not in the server
-	char* cmd = "upgrade";
-	char* rcv;
-	writeToSocket( &cmd, ssd );
-	if( readFromSocket( &rcv, ssd ) == -1 ) return -1;	// reads "okay" from server
-	free(rcv);
-	writeToSocket( &projname, ssd );	// send the project name
-	readFromSocket( &rcv, ssd );	// read whether found or not
-	if( strcmp( rcv, "projnotfound" ) == 0 )
-	{
-		printf( "Error: project not found by the server\n" );
-		return -1;
-	}  
 	// open the .Update file
 	int fd;
 	char* buf = (char*)malloc( file_stat.st_size + 1 );
 	if( ( fd = open( updatepath, O_RDONLY ) ) == -1 ){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+		writeToSocket( &end, ssd );
 		return -1;
 	}
 	if( read( fd, buf, file_stat.st_size ) == -1 ){	
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+		writeToSocket( &end, ssd );
 		return -1;
 	}
 	buf[file_stat.st_size] = '\0';
-	// for each line in the .Update file, complete the command 
-	// get the server's .Manifest
+	// for each line in the .Update file, complete the command
+	char* manpath;
+	char* filebuf;
+	int i = 0;
+	printf( ANSI_COLOR_YELLOW ".UPDATE\n%s" ANSI_COLOR_RESET, buf );
+	
+	while( i<strlen(buf) )
+	{	// if ltr is 'D', ignore because .Manifest from server will overwrite
+	
+		char ltr = buf[i];
+		int pathlen;
+		printf( "Update command: %c\n", ltr );
+		i += 2;	//pointing at beginning of filepath
+		int j;
+		for( j = i; buf[j] != '\n'; j++ );
+		pathlen = j-i; 
+		if( ltr == 'A' || ltr == 'M' )	// request the filepath from the server
+		{
+			char* tmp = (char*)malloc( 1 + pathlen );
+			tmp[0] = '\0';
+			snprintf( tmp, 1+pathlen, "%s", &buf[i] );
+			printf( "requesting %s from the server...\n", tmp );
+			writeToSocket( &tmp, ssd );
+			readFromSocket( &filebuf, ssd ); // reads the protocol intended to replace	
+			parseProtoc( &filebuf, 1 );	// recreate the file 
+			printf( "file received!\n" );
+			free( filebuf );
+			free( tmp );
+		}
+		i = j + 1;	//pointing at place after \n
+	}  
+	// get the server's .Manifest to overwrite the client's
+	manpath = (char*)malloc( 16 + strlen(projname) );
+	manpath[0] = '\0';
+	printf( "Getting .Manifest from the server...\n" );
+	snprintf( manpath, 16+strlen(projname), "root/%s/.Manifest", projname );
+	writeToSocket( &manpath, ssd );
+	readFromSocket( &filebuf, ssd );	//read back the .Manifest
+	parseProtoc( &filebuf, 1 );		// create the .Manifest
+	// delete the .Update file
+	if( remove( updatepath ) == -1 ){
+		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+	}
+	printf( ".Update has been deleted.\n" );
+	writeToSocket( &end, ssd );	// let server know that no more files are requested
+	printf( "Project is now up to date!\n" );
+	free(manpath);
+	free( filebuf );
 	free( updatepath );
+	free( buf );
+	return 0;
 }
 
 int commit( char* projname, int ssd )
@@ -414,10 +474,28 @@ int commit( char* projname, int ssd )
 	}
 	free( updatepath );
 
+	// send "commit" to the server
 	// fetch server's .Manifest
 	// server's .Manifest = .s_man
 	// client's .Manifest = .Manifest
-	if( currentversion(&projname, ssd, 1) == -1 ) return -1;
+		
+	char* cmd = "commit";
+	char* rd;
+	char* buf;
+	writeToSocket( &cmd, ssd );
+	//read "okay" from the server
+	if( readFromSocket( &rd, ssd ) == -1 ) return -1;
+	//send the project name to server
+	writeToSocket( &projname, ssd );
+	// read the buffer from server
+	readFromSocket( &buf, ssd );
+	if( strcmp( buf, "Error: project not found.\n" ) == 0 ){
+		printf( "Error: project not found.\n" );
+		return -1;
+	}
+	// send buffer to parseprotocol to create manifest
+	parseProtoc( &buf, 1 );	
+	// now .s_man exists!
 	char* sman = "./.s_man";
 	char* cman = (char*)malloc( strlen(projpath) + 11 );
 	cman[0] = '\0';
@@ -489,11 +567,11 @@ int commit( char* projname, int ssd )
 		else{ //commit failed
 			free(line);
 			printf( ANSI_COLOR_RED "Error: client must synch with the respository before commiting changes. Please run update.\n" ANSI_COLOR_RESET );
-			char cmd[100];
-			cmd[0] = '\0';
-			strcat( cmd, "rm -rf " );
-			strcat( cmd, commitpath );
-			if( system( cmd ) == -1 ){
+			char cmd2[100];
+			cmd2[0] = '\0';
+			strcat( cmd2, "rm -rf " );
+			strcat( cmd2, commitpath );
+			if( system( cmd2 ) == -1 ){
 				printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
 			}	//.commit deleted
 			free( commitpath );
@@ -508,9 +586,9 @@ int commit( char* projname, int ssd )
 	for( cptr = c_man->next; cptr != NULL; cptr = cptr->next ){
 		line = (char*)malloc( 1 + 1 + strlen(cptr->vnum) + 1 + strlen(cptr->filepath) + 1 + strlen(cptr->hash) + 2 );
 		line[0] = '\0';
-		if( strcmp(cptr->onServer, "0" ) == 0 )	//not on the server so need to add
+		if( strcmp(cptr->onServer, "0" ) == 0 && strcmp(cptr->removed, "0") == 0 )	//not on the server so need to add
 			strcat( line, "A" );
-		else if( strcmp(cptr->removed, "1" ) == 0 ) //client removed
+		else if( strcmp(cptr->removed, "1" ) == 0 && strcmp(cptr->onServer, "1") == 0 ) //client removed
 			strcat( line, "D" );
 		else{
 			free(line);
@@ -530,22 +608,28 @@ int commit( char* projname, int ssd )
 		}	 
 		free(line);
 	}
+	close(cmfd);
 	// SEND .COMMIT TO THE SERVER
-	char* cmd = (char*)malloc(7);
-	cmd[0] = '\0'; 
-	//strcat( cmd, "commit" );
-	//writeToSocket( &cmd, ssd );
-	//free(cmd);
-	if( system( "rm -rf .s_man" ) == -1 ){
+	// commitProjname
+	char* projj = (char*)malloc( 7 + strlen(projname) );
+	projj[0] = '\0';
+	snprintf( projj, 7+strlen(projname), "commit%s", projname );
+	createProtocol( &commitpath, &cmd, &projj, ssd );  
+/*	if( system( "rm -rf .s_man" ) == -1 ){
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
 		return -1;
-	}
-	printf( "commit successful! .Commit has (not exactly)  been sent to the server. Please run \"push\" to save changes to repository.\n" ); 
+	}*/
+	printf( "Commit successful! .Commit has been sent to the server. Please run \"push\" to save changes to repository.\n" ); 
 	freeManifest(live);
 	freeManifest(s_man);
 	freeManifest(c_man);
 	free(commitpath);
 	return 0;
+}
+
+int push( char* projname, int ssd )
+{
+	
 }
 /*
 int main( int argc, char** argv )

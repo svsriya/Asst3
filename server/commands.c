@@ -19,10 +19,61 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
+int numCommits = 0;
+
 int upgrade( int );
 int destory( int );
 int deleteDir( char* );
 int readFromSock( int, char** );
+int commit( int );
+int numDigits( int );
+int push( int );
+
+int push( int csd )
+{
+
+}
+
+int numDigits( int num )
+{
+	int digits = 0;
+	if( num == 0 ) return 1;
+	while( num != 0 ){
+		num = num/10;
+		digits++;	
+	}
+	return digits;
+}
+
+int commit( int csd )
+{	// commit command recieved, so send "okay" to the client
+	char* okay = "okay";
+	char* projname;
+	char* commit;
+	writeToSocket( &okay, csd );
+	// read project name from client
+	readFromSock( csd, &projname );
+	// send the .Manifest to the client
+	if( currver( csd, 1, &projname ) == -1 )
+		return -1; 
+	// read back the .Commit file and recreate
+	readFromSock( csd, &commit );
+	parseProtoc( &commit, 1 );
+	// rename the .Commit file
+	char* commitpath;
+	char* newcp;
+	commitpath = (char*)malloc( 14+strlen(projname) );
+	commitpath[0] = '\0';
+	snprintf( commitpath, 14+strlen(projname), "root/%s/.Commit", projname );
+	newcp = (char*)malloc( 14+strlen(projname)+numDigits(numCommits) );
+	newcp[0] = '\0';
+	snprintf( newcp, 14+strlen(projname)+numDigits(numCommits), "root/%s/.Commit%d", projname, numCommits );
+	if( rename( commitpath, newcp ) == -1 ){
+        	printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+	}
+	printf( "%s has been saved\n", newcp );
+	return 0;
+}
 
 int upgrade( int csd )
 {
@@ -31,6 +82,7 @@ int upgrade( int csd )
 	char* projname;
 	char* cmd = "upgrade";
 	char* msg;
+	char* protocolname;
 	writeToSocket( &success, csd );
 	readFromSock( csd, &projname );	// get the project name from the client
 	if( searchProj( projname ) == -5 ){
@@ -38,17 +90,22 @@ int upgrade( int csd )
 		char* err = "projnotfound";
 		writeToSocket( &err, csd );
 		return -1;
-	}
+	}//send that project was found
+	writeToSocket( &success, csd );
 	// until the message read is "end", keep reading
 	readFromSock( csd, &msg );
+	protocolname = (char*)malloc( 4 + strlen(projname) );
+	protocolname[0] = '\0';
+	snprintf( protocolname, 4+strlen(projname), "UPG%s", projname );
 	while( strcmp( msg, "end" ) != 0 )
 	{	// msg = path to a file needed, so send in createProtocol 
-		//createProtocol( &msg, &cmd, csd );
+		createProtocol( &msg, &cmd, &protocolname, csd );
 		free( msg );
 		readFromSock( csd, &msg );  
 	}
-	// send over the .Manifest
-	
+	free(msg);	
+	free(projname);
+	free(protocolname);
 	return 0;
 }
 

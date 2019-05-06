@@ -107,21 +107,24 @@ void createDir(int subdir_size, char ** subdir_name){
 }
 
 void createFile(int filename_size, char ** filename, int filedata_size, char ** filedata){	
-	printf("FILENAMEinCF: %s\n", *filename);
+	filename_size += 5;
+	char* newfilename = (char*)malloc( 6 + filename_size );
+	snprintf( newfilename, filename_size+1, "root/%s", *filename );
+	printf("FILENAMEinCF: %s\n", newfilename);
 	char * path = malloc(filename_size +1);
 	path[0] = '\0';
-	snprintf(path, filename_size+1, *filename);
+	snprintf(path, filename_size+1, newfilename);
 
 	char * path2 = malloc(filename_size +1);
 	path2[0] = '\0';
-	snprintf(path2, filename_size+1, *filename);
+	snprintf(path2, filename_size+1, newfilename);
 		
-	if(strncmp(path, "./root", 6) == 0){
+/*	if(strncmp(path, "./root", 6) == 0){
 		//printf("root in path");
 		path = path+7;
 		path2 = path2+7;
 	}
-	
+*/	
 	char * dir = dirname(path);
 	char * base = basename(path2);
 
