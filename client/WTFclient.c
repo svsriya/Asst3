@@ -129,6 +129,7 @@ int searchProject(char * proj){
 		return -5;
 	}	
 	free(path);
+	closedir(dirp);
 	return 0;
 
 }

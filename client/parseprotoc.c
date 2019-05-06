@@ -152,9 +152,9 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 
 	chdir(maindir);
 	free(maindir); 
-
+	close(newfd);
 	//free(path); free(path2);
-	printf("done\n");
+	//printf("done\n");
 
 }
 void parseProtoc (char ** buf, int cm){
