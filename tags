@@ -1,0 +1,863 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+ANSI_COLOR_BLUE	client/WTFclient.c	27;"	d	file:
+ANSI_COLOR_BLUE	client/clientcommands.c	16;"	d	file:
+ANSI_COLOR_BLUE	client/commitupdate.c	20;"	d	file:
+ANSI_COLOR_BLUE	client/createprotocol.c	20;"	d	file:
+ANSI_COLOR_BLUE	client/parseprotoc.c	19;"	d	file:
+ANSI_COLOR_BLUE	server/WTFserver.c	30;"	d	file:
+ANSI_COLOR_BLUE	server/commands.c	17;"	d	file:
+ANSI_COLOR_BLUE	server/createprotocol.c	20;"	d	file:
+ANSI_COLOR_BLUE	server/parseprotoc.c	19;"	d	file:
+ANSI_COLOR_BLUE	server/sendrcvfile.c	19;"	d	file:
+ANSI_COLOR_BLUE	testthings/hashtest.c	16;"	d	file:
+ANSI_COLOR_BLUE	testthings/tartest.c	18;"	d	file:
+ANSI_COLOR_BLUE	testthings/untartest.c	18;"	d	file:
+ANSI_COLOR_CYAN	client/WTFclient.c	29;"	d	file:
+ANSI_COLOR_CYAN	client/clientcommands.c	18;"	d	file:
+ANSI_COLOR_CYAN	client/commitupdate.c	22;"	d	file:
+ANSI_COLOR_CYAN	client/createprotocol.c	22;"	d	file:
+ANSI_COLOR_CYAN	client/parseprotoc.c	21;"	d	file:
+ANSI_COLOR_CYAN	server/WTFserver.c	32;"	d	file:
+ANSI_COLOR_CYAN	server/commands.c	19;"	d	file:
+ANSI_COLOR_CYAN	server/createprotocol.c	22;"	d	file:
+ANSI_COLOR_CYAN	server/parseprotoc.c	21;"	d	file:
+ANSI_COLOR_CYAN	server/sendrcvfile.c	21;"	d	file:
+ANSI_COLOR_CYAN	testthings/hashtest.c	18;"	d	file:
+ANSI_COLOR_CYAN	testthings/tartest.c	20;"	d	file:
+ANSI_COLOR_CYAN	testthings/untartest.c	20;"	d	file:
+ANSI_COLOR_GREEN	client/WTFclient.c	25;"	d	file:
+ANSI_COLOR_GREEN	client/clientcommands.c	14;"	d	file:
+ANSI_COLOR_GREEN	client/commitupdate.c	18;"	d	file:
+ANSI_COLOR_GREEN	client/createprotocol.c	18;"	d	file:
+ANSI_COLOR_GREEN	client/parseprotoc.c	17;"	d	file:
+ANSI_COLOR_GREEN	server/WTFserver.c	28;"	d	file:
+ANSI_COLOR_GREEN	server/commands.c	15;"	d	file:
+ANSI_COLOR_GREEN	server/createprotocol.c	18;"	d	file:
+ANSI_COLOR_GREEN	server/parseprotoc.c	17;"	d	file:
+ANSI_COLOR_GREEN	server/sendrcvfile.c	17;"	d	file:
+ANSI_COLOR_GREEN	testthings/hashtest.c	14;"	d	file:
+ANSI_COLOR_GREEN	testthings/tartest.c	16;"	d	file:
+ANSI_COLOR_GREEN	testthings/untartest.c	16;"	d	file:
+ANSI_COLOR_MAGENTA	client/WTFclient.c	28;"	d	file:
+ANSI_COLOR_MAGENTA	client/clientcommands.c	17;"	d	file:
+ANSI_COLOR_MAGENTA	client/commitupdate.c	21;"	d	file:
+ANSI_COLOR_MAGENTA	client/createprotocol.c	21;"	d	file:
+ANSI_COLOR_MAGENTA	client/parseprotoc.c	20;"	d	file:
+ANSI_COLOR_MAGENTA	server/WTFserver.c	31;"	d	file:
+ANSI_COLOR_MAGENTA	server/commands.c	18;"	d	file:
+ANSI_COLOR_MAGENTA	server/createprotocol.c	21;"	d	file:
+ANSI_COLOR_MAGENTA	server/parseprotoc.c	20;"	d	file:
+ANSI_COLOR_MAGENTA	server/sendrcvfile.c	20;"	d	file:
+ANSI_COLOR_MAGENTA	testthings/hashtest.c	17;"	d	file:
+ANSI_COLOR_MAGENTA	testthings/tartest.c	19;"	d	file:
+ANSI_COLOR_MAGENTA	testthings/untartest.c	19;"	d	file:
+ANSI_COLOR_RED	client/WTFclient.c	24;"	d	file:
+ANSI_COLOR_RED	client/clientcommands.c	13;"	d	file:
+ANSI_COLOR_RED	client/commitupdate.c	17;"	d	file:
+ANSI_COLOR_RED	client/createprotocol.c	17;"	d	file:
+ANSI_COLOR_RED	client/parseprotoc.c	16;"	d	file:
+ANSI_COLOR_RED	server/WTFserver.c	27;"	d	file:
+ANSI_COLOR_RED	server/commands.c	14;"	d	file:
+ANSI_COLOR_RED	server/createprotocol.c	17;"	d	file:
+ANSI_COLOR_RED	server/parseprotoc.c	16;"	d	file:
+ANSI_COLOR_RED	server/sendrcvfile.c	16;"	d	file:
+ANSI_COLOR_RED	testthings/hashtest.c	13;"	d	file:
+ANSI_COLOR_RED	testthings/tartest.c	15;"	d	file:
+ANSI_COLOR_RED	testthings/untartest.c	15;"	d	file:
+ANSI_COLOR_RESET	client/WTFclient.c	30;"	d	file:
+ANSI_COLOR_RESET	client/clientcommands.c	19;"	d	file:
+ANSI_COLOR_RESET	client/commitupdate.c	23;"	d	file:
+ANSI_COLOR_RESET	client/createprotocol.c	23;"	d	file:
+ANSI_COLOR_RESET	client/parseprotoc.c	22;"	d	file:
+ANSI_COLOR_RESET	server/WTFserver.c	33;"	d	file:
+ANSI_COLOR_RESET	server/commands.c	20;"	d	file:
+ANSI_COLOR_RESET	server/createprotocol.c	23;"	d	file:
+ANSI_COLOR_RESET	server/parseprotoc.c	22;"	d	file:
+ANSI_COLOR_RESET	server/sendrcvfile.c	22;"	d	file:
+ANSI_COLOR_RESET	testthings/hashtest.c	19;"	d	file:
+ANSI_COLOR_RESET	testthings/tartest.c	21;"	d	file:
+ANSI_COLOR_RESET	testthings/untartest.c	21;"	d	file:
+ANSI_COLOR_YELLOW	client/WTFclient.c	26;"	d	file:
+ANSI_COLOR_YELLOW	client/clientcommands.c	15;"	d	file:
+ANSI_COLOR_YELLOW	client/commitupdate.c	19;"	d	file:
+ANSI_COLOR_YELLOW	client/createprotocol.c	19;"	d	file:
+ANSI_COLOR_YELLOW	client/parseprotoc.c	18;"	d	file:
+ANSI_COLOR_YELLOW	server/WTFserver.c	29;"	d	file:
+ANSI_COLOR_YELLOW	server/commands.c	16;"	d	file:
+ANSI_COLOR_YELLOW	server/createprotocol.c	19;"	d	file:
+ANSI_COLOR_YELLOW	server/parseprotoc.c	18;"	d	file:
+ANSI_COLOR_YELLOW	server/sendrcvfile.c	18;"	d	file:
+ANSI_COLOR_YELLOW	testthings/hashtest.c	15;"	d	file:
+ANSI_COLOR_YELLOW	testthings/tartest.c	17;"	d	file:
+ANSI_COLOR_YELLOW	testthings/untartest.c	17;"	d	file:
+BACKLOG	server/WTFserver.c	34;"	d	file:
+Byte	client/zconf.h	/^typedef unsigned char  Byte;  \/* 8 bits *\/$/;"	t
+Byte	client/zconf.h	141;"	d
+Byte	server/zconf.h	/^typedef unsigned char  Byte;  \/* 8 bits *\/$/;"	t
+Byte	server/zconf.h	141;"	d
+Bytef	client/zconf.h	/^   typedef Byte  FAR Bytef;$/;"	t
+Bytef	client/zconf.h	142;"	d
+Bytef	client/zconf.h	398;"	d
+Bytef	server/zconf.h	/^   typedef Byte  FAR Bytef;$/;"	t
+Bytef	server/zconf.h	142;"	d
+Bytef	server/zconf.h	398;"	d
+CHUNK	client/zpipe.c	30;"	d	file:
+CHUNK	server/gzappend.c	91;"	d	file:
+CHUNK	server/zpipe.c	30;"	d	file:
+DSIZE	server/gzappend.c	92;"	d	file:
+FAR	client/zconf.h	315;"	d
+FAR	client/zconf.h	317;"	d
+FAR	client/zconf.h	324;"	d
+FAR	client/zconf.h	326;"	d
+FAR	client/zconf.h	350;"	d
+FAR	client/zconf.h	387;"	d
+FAR	server/zconf.h	315;"	d
+FAR	server/zconf.h	317;"	d
+FAR	server/zconf.h	324;"	d
+FAR	server/zconf.h	326;"	d
+FAR	server/zconf.h	350;"	d
+FAR	server/zconf.h	387;"	d
+LGCHUNK	server/gzappend.c	90;"	d	file:
+MAXSEG_64K	client/zconf.h	195;"	d
+MAXSEG_64K	server/zconf.h	195;"	d
+MAX_MEM_LEVEL	client/zconf.h	258;"	d
+MAX_MEM_LEVEL	client/zconf.h	260;"	d
+MAX_MEM_LEVEL	server/zconf.h	258;"	d
+MAX_MEM_LEVEL	server/zconf.h	260;"	d
+MAX_WBITS	client/zconf.h	270;"	d
+MAX_WBITS	server/zconf.h	270;"	d
+MSDOS	client/zconf.h	169;"	d
+MSDOS	server/zconf.h	169;"	d
+Manifest	client/clientcommands.c	/^}Manifest;$/;"	t	typeref:struct:manifest	file:
+OF	client/zconf.h	290;"	d
+OF	client/zconf.h	292;"	d
+OF	server/zconf.h	290;"	d
+OF	server/zconf.h	292;"	d
+OS2	client/zconf.h	172;"	d
+OS2	server/zconf.h	172;"	d
+SEEK_CUR	client/zconf.h	499;"	d
+SEEK_CUR	server/zconf.h	499;"	d
+SEEK_END	client/zconf.h	500;"	d
+SEEK_END	server/zconf.h	500;"	d
+SEEK_SET	client/zconf.h	498;"	d
+SEEK_SET	server/zconf.h	498;"	d
+SET_BINARY_MODE	client/zpipe.c	25;"	d	file:
+SET_BINARY_MODE	client/zpipe.c	27;"	d	file:
+SET_BINARY_MODE	server/zpipe.c	25;"	d	file:
+SET_BINARY_MODE	server/zpipe.c	27;"	d	file:
+SMALL_MEDIUM	client/zconf.h	313;"	d
+SMALL_MEDIUM	client/zconf.h	322;"	d
+SMALL_MEDIUM	server/zconf.h	313;"	d
+SMALL_MEDIUM	server/zconf.h	322;"	d
+STDC	client/zconf.h	203;"	d
+STDC	client/zconf.h	212;"	d
+STDC	client/zconf.h	215;"	d
+STDC	client/zconf.h	218;"	d
+STDC	client/zconf.h	221;"	d
+STDC	client/zconf.h	225;"	d
+STDC	server/zconf.h	203;"	d
+STDC	server/zconf.h	212;"	d
+STDC	server/zconf.h	215;"	d
+STDC	server/zconf.h	218;"	d
+STDC	server/zconf.h	221;"	d
+STDC	server/zconf.h	225;"	d
+STDC99	client/zconf.h	207;"	d
+STDC99	server/zconf.h	207;"	d
+SYS16BIT	client/zconf.h	185;"	d
+SYS16BIT	server/zconf.h	185;"	d
+UNALIGNED_OK	client/zconf.h	198;"	d
+UNALIGNED_OK	server/zconf.h	198;"	d
+WIN32	client/zconf.h	179;"	d
+WIN32	server/zconf.h	179;"	d
+WINDOWS	client/zconf.h	175;"	d
+WINDOWS	server/zconf.h	175;"	d
+ZCONF_H	client/zconf.h	9;"	d
+ZCONF_H	server/zconf.h	9;"	d
+ZEXPORT	client/zconf.h	355;"	d
+ZEXPORT	client/zconf.h	367;"	d
+ZEXPORT	client/zconf.h	370;"	d
+ZEXPORT	client/zconf.h	380;"	d
+ZEXPORT	server/zconf.h	355;"	d
+ZEXPORT	server/zconf.h	367;"	d
+ZEXPORT	server/zconf.h	370;"	d
+ZEXPORT	server/zconf.h	380;"	d
+ZEXPORTVA	client/zconf.h	357;"	d
+ZEXPORTVA	client/zconf.h	359;"	d
+ZEXPORTVA	client/zconf.h	368;"	d
+ZEXPORTVA	client/zconf.h	371;"	d
+ZEXPORTVA	client/zconf.h	383;"	d
+ZEXPORTVA	server/zconf.h	357;"	d
+ZEXPORTVA	server/zconf.h	359;"	d
+ZEXPORTVA	server/zconf.h	368;"	d
+ZEXPORTVA	server/zconf.h	371;"	d
+ZEXPORTVA	server/zconf.h	383;"	d
+ZEXTERN	client/zconf.h	338;"	d
+ZEXTERN	client/zconf.h	340;"	d
+ZEXTERN	client/zconf.h	377;"	d
+ZEXTERN	server/zconf.h	338;"	d
+ZEXTERN	server/zconf.h	340;"	d
+ZEXTERN	server/zconf.h	377;"	d
+ZLIB_H	client/zlib.h	32;"	d
+ZLIB_H	server/zlib.h	32;"	d
+ZLIB_VERNUM	client/zlib.h	41;"	d
+ZLIB_VERNUM	server/zlib.h	41;"	d
+ZLIB_VERSION	client/zlib.h	40;"	d
+ZLIB_VERSION	server/zlib.h	40;"	d
+ZLIB_VER_MAJOR	client/zlib.h	42;"	d
+ZLIB_VER_MAJOR	server/zlib.h	42;"	d
+ZLIB_VER_MINOR	client/zlib.h	43;"	d
+ZLIB_VER_MINOR	server/zlib.h	43;"	d
+ZLIB_VER_REVISION	client/zlib.h	44;"	d
+ZLIB_VER_REVISION	server/zlib.h	44;"	d
+ZLIB_VER_SUBREVISION	client/zlib.h	45;"	d
+ZLIB_VER_SUBREVISION	server/zlib.h	45;"	d
+Z_ARG	client/zconf.h	298;"	d
+Z_ARG	client/zconf.h	300;"	d
+Z_ARG	server/zconf.h	298;"	d
+Z_ARG	server/zconf.h	300;"	d
+Z_ASCII	client/zlib.h	205;"	d
+Z_ASCII	server/zlib.h	205;"	d
+Z_BEST_COMPRESSION	client/zlib.h	192;"	d
+Z_BEST_COMPRESSION	server/zlib.h	192;"	d
+Z_BEST_SPEED	client/zlib.h	191;"	d
+Z_BEST_SPEED	server/zlib.h	191;"	d
+Z_BINARY	client/zlib.h	203;"	d
+Z_BINARY	server/zlib.h	203;"	d
+Z_BLOCK	client/zlib.h	173;"	d
+Z_BLOCK	server/zlib.h	173;"	d
+Z_BUF_ERROR	client/zlib.h	184;"	d
+Z_BUF_ERROR	server/zlib.h	184;"	d
+Z_DATA_ERROR	client/zlib.h	182;"	d
+Z_DATA_ERROR	server/zlib.h	182;"	d
+Z_DEFAULT_COMPRESSION	client/zlib.h	193;"	d
+Z_DEFAULT_COMPRESSION	server/zlib.h	193;"	d
+Z_DEFAULT_STRATEGY	client/zlib.h	200;"	d
+Z_DEFAULT_STRATEGY	server/zlib.h	200;"	d
+Z_DEFLATED	client/zlib.h	209;"	d
+Z_DEFLATED	server/zlib.h	209;"	d
+Z_ERRNO	client/zlib.h	180;"	d
+Z_ERRNO	server/zlib.h	180;"	d
+Z_FILTERED	client/zlib.h	196;"	d
+Z_FILTERED	server/zlib.h	196;"	d
+Z_FINISH	client/zlib.h	172;"	d
+Z_FINISH	server/zlib.h	172;"	d
+Z_FIXED	client/zlib.h	199;"	d
+Z_FIXED	server/zlib.h	199;"	d
+Z_FULL_FLUSH	client/zlib.h	171;"	d
+Z_FULL_FLUSH	server/zlib.h	171;"	d
+Z_HAVE_STDARG_H	client/zconf.h	439;"	d
+Z_HAVE_STDARG_H	server/zconf.h	439;"	d
+Z_HAVE_UNISTD_H	client/zconf.h	435;"	d
+Z_HAVE_UNISTD_H	client/zconf.h	471;"	d
+Z_HAVE_UNISTD_H	server/zconf.h	435;"	d
+Z_HAVE_UNISTD_H	server/zconf.h	471;"	d
+Z_HUFFMAN_ONLY	client/zlib.h	197;"	d
+Z_HUFFMAN_ONLY	server/zlib.h	197;"	d
+Z_LARGE64	client/zconf.h	490;"	d
+Z_LARGE64	server/zconf.h	490;"	d
+Z_LFS64	client/zconf.h	486;"	d
+Z_LFS64	server/zconf.h	486;"	d
+Z_MEM_ERROR	client/zlib.h	183;"	d
+Z_MEM_ERROR	server/zlib.h	183;"	d
+Z_NEED_DICT	client/zlib.h	179;"	d
+Z_NEED_DICT	server/zlib.h	179;"	d
+Z_NO_COMPRESSION	client/zlib.h	190;"	d
+Z_NO_COMPRESSION	server/zlib.h	190;"	d
+Z_NO_FLUSH	client/zlib.h	168;"	d
+Z_NO_FLUSH	server/zlib.h	168;"	d
+Z_NULL	client/zlib.h	212;"	d
+Z_NULL	server/zlib.h	212;"	d
+Z_OK	client/zlib.h	177;"	d
+Z_OK	server/zlib.h	177;"	d
+Z_PARTIAL_FLUSH	client/zlib.h	169;"	d
+Z_PARTIAL_FLUSH	server/zlib.h	169;"	d
+Z_PREFIX_SET	client/zconf.h	18;"	d
+Z_PREFIX_SET	server/zconf.h	18;"	d
+Z_RLE	client/zlib.h	198;"	d
+Z_RLE	server/zlib.h	198;"	d
+Z_STREAM_END	client/zlib.h	178;"	d
+Z_STREAM_END	server/zlib.h	178;"	d
+Z_STREAM_ERROR	client/zlib.h	181;"	d
+Z_STREAM_ERROR	server/zlib.h	181;"	d
+Z_SYNC_FLUSH	client/zlib.h	170;"	d
+Z_SYNC_FLUSH	server/zlib.h	170;"	d
+Z_TEXT	client/zlib.h	204;"	d
+Z_TEXT	server/zlib.h	204;"	d
+Z_TREES	client/zlib.h	174;"	d
+Z_TREES	server/zlib.h	174;"	d
+Z_U4	client/zconf.h	420;"	d
+Z_U4	client/zconf.h	422;"	d
+Z_U4	client/zconf.h	424;"	d
+Z_U4	server/zconf.h	420;"	d
+Z_U4	server/zconf.h	422;"	d
+Z_U4	server/zconf.h	424;"	d
+Z_UNKNOWN	client/zlib.h	206;"	d
+Z_UNKNOWN	server/zlib.h	206;"	d
+Z_VERSION_ERROR	client/zlib.h	185;"	d
+Z_VERSION_ERROR	server/zlib.h	185;"	d
+Z_WANT64	client/zconf.h	494;"	d
+Z_WANT64	server/zconf.h	494;"	d
+_LARGEFILE64_SOURCE	client/zconf.h	467;"	d
+_LARGEFILE64_SOURCE	server/zconf.h	467;"	d
+_dist_code	client/zconf.h	21;"	d
+_dist_code	server/zconf.h	21;"	d
+_length_code	client/zconf.h	22;"	d
+_length_code	server/zconf.h	22;"	d
+_tr_align	client/zconf.h	23;"	d
+_tr_align	server/zconf.h	23;"	d
+_tr_flush_bits	client/zconf.h	24;"	d
+_tr_flush_bits	server/zconf.h	24;"	d
+_tr_flush_block	client/zconf.h	25;"	d
+_tr_flush_block	server/zconf.h	25;"	d
+_tr_init	client/zconf.h	26;"	d
+_tr_init	server/zconf.h	26;"	d
+_tr_stored_block	client/zconf.h	27;"	d
+_tr_stored_block	server/zconf.h	27;"	d
+_tr_tally	client/zconf.h	28;"	d
+_tr_tally	server/zconf.h	28;"	d
+addM	client/clientcommands.c	/^int addM( char* projname, char* filename )$/;"	f
+adler	client/zlib.h	/^    uLong   adler;      \/* Adler-32 or CRC-32 value of the uncompressed data *\/$/;"	m	struct:z_stream_s
+adler	server/zlib.h	/^    uLong   adler;      \/* Adler-32 or CRC-32 value of the uncompressed data *\/$/;"	m	struct:z_stream_s
+adler32	client/zconf.h	29;"	d
+adler32	server/zconf.h	29;"	d
+adler32_combine	client/zconf.h	30;"	d
+adler32_combine	client/zlib.h	1860;"	d
+adler32_combine	server/zconf.h	30;"	d
+adler32_combine	server/zlib.h	1860;"	d
+adler32_combine64	client/zconf.h	31;"	d
+adler32_combine64	server/zconf.h	31;"	d
+adler32_z	client/zconf.h	32;"	d
+adler32_z	server/zconf.h	32;"	d
+alloc_func	client/zconf.h	143;"	d
+alloc_func	client/zlib.h	/^typedef voidpf (*alloc_func) OF((voidpf opaque, uInt items, uInt size));$/;"	t
+alloc_func	server/zconf.h	143;"	d
+alloc_func	server/zlib.h	/^typedef voidpf (*alloc_func) OF((voidpf opaque, uInt items, uInt size));$/;"	t
+avail_in	client/zlib.h	/^    uInt     avail_in;  \/* number of bytes available at next_in *\/$/;"	m	struct:z_stream_s
+avail_in	server/zlib.h	/^    uInt     avail_in;  \/* number of bytes available at next_in *\/$/;"	m	struct:z_stream_s
+avail_out	client/zlib.h	/^    uInt     avail_out; \/* remaining free space at next_out *\/$/;"	m	struct:z_stream_s
+avail_out	server/zlib.h	/^    uInt     avail_out; \/* remaining free space at next_out *\/$/;"	m	struct:z_stream_s
+buf	server/gzappend.c	/^    unsigned char *buf;         \/* buffer *\/$/;"	m	struct:__anon1	file:
+build	client/clientcommands.c	/^void build( char* manpath, Manifest** head )$/;"	f
+bye	server/gzappend.c	/^local void bye(char *msg1, char *msg2)$/;"	f
+cfd	server/threadsetup.c	/^	int cfd;$/;"	m	struct:th_container	file:
+charToInt	client/WTFclient.c	/^int charToInt( char* numArr ){$/;"	f
+charToInt	server/WTFserver.c	/^int charToInt( char* numArr ){$/;"	f
+charf	client/zconf.h	/^typedef char  FAR charf;$/;"	t
+charf	client/zconf.h	144;"	d
+charf	server/zconf.h	/^typedef char  FAR charf;$/;"	t
+charf	server/zconf.h	144;"	d
+checkout	client/WTFclient.c	/^int checkout (char **projname, int sd){$/;"	f
+checkoutProj	server/WTFserver.c	/^int checkoutProj(int cfd){$/;"	f
+comm_max	client/zlib.h	/^    uInt    comm_max;   \/* space at comment (only when reading header) *\/$/;"	m	struct:gz_header_s
+comm_max	server/zlib.h	/^    uInt    comm_max;   \/* space at comment (only when reading header) *\/$/;"	m	struct:gz_header_s
+comment	client/zlib.h	/^    Bytef   *comment;   \/* pointer to zero-terminated comment or Z_NULL *\/$/;"	m	struct:gz_header_s
+comment	server/zlib.h	/^    Bytef   *comment;   \/* pointer to zero-terminated comment or Z_NULL *\/$/;"	m	struct:gz_header_s
+commit	client/commitupdate.c	/^int commit( char* projname, int ssd )$/;"	f
+commit	server/commands.c	/^int commit( int csd )$/;"	f
+compress	client/zconf.h	34;"	d
+compress	server/zconf.h	34;"	d
+compress2	client/zconf.h	35;"	d
+compress2	server/zconf.h	35;"	d
+compressBound	client/zconf.h	36;"	d
+compressBound	server/zconf.h	36;"	d
+configure	client/WTFclient.c	/^void configure( char* ip, char* port ){$/;"	f
+const	client/zconf.h	230;"	d
+const	server/zconf.h	230;"	d
+crc32	client/zconf.h	38;"	d
+crc32	server/zconf.h	38;"	d
+crc32_combine	client/zconf.h	39;"	d
+crc32_combine	client/zlib.h	1861;"	d
+crc32_combine	server/zconf.h	39;"	d
+crc32_combine	server/zlib.h	1861;"	d
+crc32_combine64	client/zconf.h	40;"	d
+crc32_combine64	server/zconf.h	40;"	d
+crc32_z	client/zconf.h	41;"	d
+crc32_z	server/zconf.h	41;"	d
+create	client/WTFclient.c	/^int create (char ** projname, int sd){$/;"	f
+createDir	client/parseprotoc.c	/^void createDir(int subdir_size, char ** subdir_name){$/;"	f
+createDir	server/parseprotoc.c	/^void createDir(int subdir_size, char ** subdir_name){$/;"	f
+createFile	client/parseprotoc.c	/^void createFile(int filename_size, char ** filename, int filedata_size, char ** filedata){	$/;"	f
+createFile	server/parseprotoc.c	/^void createFile(int filename_size, char ** filename, int filedata_size, char ** filedata){	$/;"	f
+createGzip	client/createprotocol.c	/^void createGzip(){$/;"	f
+createGzip	server/createprotocol.c	/^void createGzip(){$/;"	f
+createLive	client/commitupdate.c	/^Manifest* createLive( Manifest* client_man, int cmd ) \/\/ generates the live hashcodes for each file in manifest$/;"	f
+createProj	server/WTFserver.c	/^int createProj(int cfd){$/;"	f
+createProtocol	client/createprotocol.c	/^void createProtocol (char ** path, char ** cmd, char** projj,  int sockd){$/;"	f
+createProtocol	server/createprotocol.c	/^void createProtocol (char ** path, char ** cmd, char** projj,  int sockd){$/;"	f
+currentversion	client/WTFclient.c	/^int currentversion(char ** projname, int sd, int cm){$/;"	f
+currver	server/WTFserver.c	/^int currver(int cfd, int cs, char ** pn){$/;"	f
+data_type	client/zlib.h	/^    int     data_type;  \/* best guess about the data type: binary or text$/;"	m	struct:z_stream_s
+data_type	server/zlib.h	/^    int     data_type;  \/* best guess about the data type: binary or text$/;"	m	struct:z_stream_s
+def	client/zpipe.c	/^int def(FILE *source, FILE *dest, int level)$/;"	f
+def	server/zpipe.c	/^int def(FILE *source, FILE *dest, int level)$/;"	f
+deflate	client/zconf.h	42;"	d
+deflate	server/zconf.h	42;"	d
+deflateBound	client/zconf.h	43;"	d
+deflateBound	server/zconf.h	43;"	d
+deflateCopy	client/zconf.h	44;"	d
+deflateCopy	server/zconf.h	44;"	d
+deflateEnd	client/zconf.h	45;"	d
+deflateEnd	server/zconf.h	45;"	d
+deflateGetDictionary	client/zconf.h	46;"	d
+deflateGetDictionary	server/zconf.h	46;"	d
+deflateInit	client/zconf.h	47;"	d
+deflateInit	client/zlib.h	1793;"	d
+deflateInit	server/zconf.h	47;"	d
+deflateInit	server/zlib.h	1793;"	d
+deflateInit2	client/zconf.h	48;"	d
+deflateInit2	client/zlib.h	1797;"	d
+deflateInit2	server/zconf.h	48;"	d
+deflateInit2	server/zlib.h	1797;"	d
+deflateInit2_	client/zconf.h	49;"	d
+deflateInit2_	server/zconf.h	49;"	d
+deflateInit_	client/zconf.h	50;"	d
+deflateInit_	server/zconf.h	50;"	d
+deflateParams	client/zconf.h	51;"	d
+deflateParams	server/zconf.h	51;"	d
+deflatePending	client/zconf.h	52;"	d
+deflatePending	server/zconf.h	52;"	d
+deflatePrime	client/zconf.h	53;"	d
+deflatePrime	server/zconf.h	53;"	d
+deflateReset	client/zconf.h	54;"	d
+deflateReset	server/zconf.h	54;"	d
+deflateResetKeep	client/zconf.h	55;"	d
+deflateResetKeep	server/zconf.h	55;"	d
+deflateSetDictionary	client/zconf.h	56;"	d
+deflateSetDictionary	server/zconf.h	56;"	d
+deflateSetHeader	client/zconf.h	57;"	d
+deflateSetHeader	server/zconf.h	57;"	d
+deflateTune	client/zconf.h	58;"	d
+deflateTune	server/zconf.h	58;"	d
+deflate_copyright	client/zconf.h	59;"	d
+deflate_copyright	server/zconf.h	59;"	d
+deleteDir	server/commands.c	/^int deleteDir( char* path )$/;"	f
+destroy	client/clientcommands.c	/^int destroy( char* projname, int ssd )$/;"	f
+destroy	server/commands.c	/^int destroy( int csd )$/;"	f
+destroyProtocolFile	client/createprotocol.c	/^void destroyProtocolFile(){$/;"	f
+destroyProtocolFile	server/createprotocol.c	/^void destroyProtocolFile(){$/;"	f
+done	client/zlib.h	/^    int     done;       \/* true when done reading gzip header (not used$/;"	m	struct:gz_header_s
+done	server/zlib.h	/^    int     done;       \/* true when done reading gzip header (not used$/;"	m	struct:gz_header_s
+extra	client/zlib.h	/^    Bytef   *extra;     \/* pointer to extra field or Z_NULL if none *\/$/;"	m	struct:gz_header_s
+extra	server/zlib.h	/^    Bytef   *extra;     \/* pointer to extra field or Z_NULL if none *\/$/;"	m	struct:gz_header_s
+extra_len	client/zlib.h	/^    uInt    extra_len;  \/* extra field length (valid if extra != Z_NULL) *\/$/;"	m	struct:gz_header_s
+extra_len	server/zlib.h	/^    uInt    extra_len;  \/* extra field length (valid if extra != Z_NULL) *\/$/;"	m	struct:gz_header_s
+extra_max	client/zlib.h	/^    uInt    extra_max;  \/* space at extra (only when reading header) *\/$/;"	m	struct:gz_header_s
+extra_max	server/zlib.h	/^    uInt    extra_max;  \/* space at extra (only when reading header) *\/$/;"	m	struct:gz_header_s
+fd	server/gzappend.c	/^    int fd;                     \/* file descriptor *\/$/;"	m	struct:__anon1	file:
+fetchHistory	server/WTFserver.c	/^int fetchHistory(int cfd){$/;"	f
+file	server/gzappend.c	/^} file;$/;"	t	typeref:struct:__anon1	file:
+filepath	client/clientcommands.c	/^	char* filepath;$/;"	m	struct:manifest	file:
+freeManifest	client/clientcommands.c	/^void freeManifest( Manifest* head )$/;"	f
+free_func	client/zconf.h	145;"	d
+free_func	client/zlib.h	/^typedef void   (*free_func)  OF((voidpf opaque, voidpf address));$/;"	t
+free_func	server/zconf.h	145;"	d
+free_func	server/zlib.h	/^typedef void   (*free_func)  OF((voidpf opaque, voidpf address));$/;"	t
+gcd	server/gzappend.c	/^local unsigned gcd(unsigned a, unsigned b)$/;"	f
+get_crc_table	client/zconf.h	60;"	d
+get_crc_table	server/zconf.h	60;"	d
+gzFile	client/zconf.h	147;"	d
+gzFile	client/zlib.h	/^typedef struct gzFile_s *gzFile;    \/* semi-opaque gzip file descriptor *\/$/;"	t	typeref:struct:gzFile_s
+gzFile	server/zconf.h	147;"	d
+gzFile	server/zlib.h	/^typedef struct gzFile_s *gzFile;    \/* semi-opaque gzip file descriptor *\/$/;"	t	typeref:struct:gzFile_s
+gzFile_s	client/zlib.h	/^struct gzFile_s {$/;"	s
+gzFile_s	server/zlib.h	/^struct gzFile_s {$/;"	s
+gz_error	client/zconf.h	62;"	d
+gz_error	server/zconf.h	62;"	d
+gz_header	client/zconf.h	149;"	d
+gz_header	client/zlib.h	/^} gz_header;$/;"	t	typeref:struct:gz_header_s
+gz_header	server/zconf.h	149;"	d
+gz_header	server/zlib.h	/^} gz_header;$/;"	t	typeref:struct:gz_header_s
+gz_header_s	client/zconf.h	163;"	d
+gz_header_s	client/zlib.h	/^typedef struct gz_header_s {$/;"	s
+gz_header_s	server/zconf.h	163;"	d
+gz_header_s	server/zlib.h	/^typedef struct gz_header_s {$/;"	s
+gz_headerp	client/zconf.h	150;"	d
+gz_headerp	client/zlib.h	/^typedef gz_header FAR *gz_headerp;$/;"	t
+gz_headerp	server/zconf.h	150;"	d
+gz_headerp	server/zlib.h	/^typedef gz_header FAR *gz_headerp;$/;"	t
+gz_intmax	client/zconf.h	63;"	d
+gz_intmax	server/zconf.h	63;"	d
+gz_strwinerror	client/zconf.h	64;"	d
+gz_strwinerror	server/zconf.h	64;"	d
+gzbuffer	client/zconf.h	65;"	d
+gzbuffer	server/zconf.h	65;"	d
+gzclearerr	client/zconf.h	66;"	d
+gzclearerr	server/zconf.h	66;"	d
+gzclose	client/zconf.h	67;"	d
+gzclose	server/zconf.h	67;"	d
+gzclose_r	client/zconf.h	68;"	d
+gzclose_r	server/zconf.h	68;"	d
+gzclose_w	client/zconf.h	69;"	d
+gzclose_w	server/zconf.h	69;"	d
+gzdirect	client/zconf.h	70;"	d
+gzdirect	server/zconf.h	70;"	d
+gzdopen	client/zconf.h	71;"	d
+gzdopen	server/zconf.h	71;"	d
+gzeof	client/zconf.h	72;"	d
+gzeof	server/zconf.h	72;"	d
+gzerror	client/zconf.h	73;"	d
+gzerror	server/zconf.h	73;"	d
+gzflush	client/zconf.h	74;"	d
+gzflush	server/zconf.h	74;"	d
+gzfread	client/zconf.h	75;"	d
+gzfread	server/zconf.h	75;"	d
+gzfwrite	client/zconf.h	76;"	d
+gzfwrite	server/zconf.h	76;"	d
+gzgetc	client/zconf.h	77;"	d
+gzgetc	client/zlib.h	1828;"	d
+gzgetc	server/zconf.h	77;"	d
+gzgetc	server/zlib.h	1828;"	d
+gzgetc_	client/zconf.h	78;"	d
+gzgetc_	server/zconf.h	78;"	d
+gzgets	client/zconf.h	79;"	d
+gzgets	server/zconf.h	79;"	d
+gzheader	server/gzappend.c	/^local void gzheader(file *in)$/;"	f
+gzoffset	client/zconf.h	80;"	d
+gzoffset	client/zlib.h	1859;"	d
+gzoffset	server/zconf.h	80;"	d
+gzoffset	server/zlib.h	1859;"	d
+gzoffset64	client/zconf.h	81;"	d
+gzoffset64	server/zconf.h	81;"	d
+gzopen	client/zconf.h	82;"	d
+gzopen	client/zlib.h	1856;"	d
+gzopen	server/zconf.h	82;"	d
+gzopen	server/zlib.h	1856;"	d
+gzopen64	client/zconf.h	83;"	d
+gzopen64	server/zconf.h	83;"	d
+gzopen_w	client/zconf.h	85;"	d
+gzopen_w	server/zconf.h	85;"	d
+gzprintf	client/zconf.h	87;"	d
+gzprintf	server/zconf.h	87;"	d
+gzputc	client/zconf.h	88;"	d
+gzputc	server/zconf.h	88;"	d
+gzputs	client/zconf.h	89;"	d
+gzputs	server/zconf.h	89;"	d
+gzread	client/zconf.h	90;"	d
+gzread	server/zconf.h	90;"	d
+gzrewind	client/zconf.h	91;"	d
+gzrewind	server/zconf.h	91;"	d
+gzscan	server/gzappend.c	/^local int gzscan(char *name, z_stream *strm, int level)$/;"	f
+gzseek	client/zconf.h	92;"	d
+gzseek	client/zlib.h	1857;"	d
+gzseek	server/zconf.h	92;"	d
+gzseek	server/zlib.h	1857;"	d
+gzseek64	client/zconf.h	93;"	d
+gzseek64	server/zconf.h	93;"	d
+gzsetparams	client/zconf.h	94;"	d
+gzsetparams	server/zconf.h	94;"	d
+gztack	server/gzappend.c	/^local void gztack(char *name, int gd, z_stream *strm, int last)$/;"	f
+gztell	client/zconf.h	95;"	d
+gztell	client/zlib.h	1858;"	d
+gztell	server/zconf.h	95;"	d
+gztell	server/zlib.h	1858;"	d
+gztell64	client/zconf.h	96;"	d
+gztell64	server/zconf.h	96;"	d
+gzungetc	client/zconf.h	97;"	d
+gzungetc	server/zconf.h	97;"	d
+gzvprintf	client/zconf.h	98;"	d
+gzvprintf	server/zconf.h	98;"	d
+gzwrite	client/zconf.h	99;"	d
+gzwrite	server/zconf.h	99;"	d
+handleClient	server/WTFserver.c	/^void * handleClient(void * thr_cont){$/;"	f
+handle_sigs	server/WTFserver.c	/^void * handle_sigs(void * args){$/;"	f
+hash	client/clientcommands.c	/^	char* hash;$/;"	m	struct:manifest	file:
+hashcode	client/clientcommands.c	/^char* hashcode( char* filepath )$/;"	f
+have	client/zlib.h	/^    unsigned have;$/;"	m	struct:gzFile_s
+have	server/zlib.h	/^    unsigned have;$/;"	m	struct:gzFile_s
+hcrc	client/zlib.h	/^    int     hcrc;       \/* true if there was or will be a header crc *\/$/;"	m	struct:gz_header_s
+hcrc	server/zlib.h	/^    int     hcrc;       \/* true if there was or will be a header crc *\/$/;"	m	struct:gz_header_s
+history	client/WTFclient.c	/^int history(char ** projname, int sd){$/;"	f
+in_func	client/zconf.h	151;"	d
+in_func	client/zlib.h	/^typedef unsigned (*in_func) OF((void FAR *,$/;"	t
+in_func	server/zconf.h	151;"	d
+in_func	server/zlib.h	/^typedef unsigned (*in_func) OF((void FAR *,$/;"	t
+inf	client/zpipe.c	/^int inf(FILE *source, FILE *dest)$/;"	f
+inf	server/zpipe.c	/^int inf(FILE *source, FILE *dest)$/;"	f
+inflate	client/zconf.h	101;"	d
+inflate	server/zconf.h	101;"	d
+inflateBack	client/zconf.h	102;"	d
+inflateBack	server/zconf.h	102;"	d
+inflateBackEnd	client/zconf.h	103;"	d
+inflateBackEnd	server/zconf.h	103;"	d
+inflateBackInit	client/zconf.h	104;"	d
+inflateBackInit	client/zlib.h	1803;"	d
+inflateBackInit	server/zconf.h	104;"	d
+inflateBackInit	server/zlib.h	1803;"	d
+inflateBackInit_	client/zconf.h	105;"	d
+inflateBackInit_	server/zconf.h	105;"	d
+inflateCodesUsed	client/zconf.h	106;"	d
+inflateCodesUsed	server/zconf.h	106;"	d
+inflateCopy	client/zconf.h	107;"	d
+inflateCopy	server/zconf.h	107;"	d
+inflateEnd	client/zconf.h	108;"	d
+inflateEnd	server/zconf.h	108;"	d
+inflateGetDictionary	client/zconf.h	109;"	d
+inflateGetDictionary	server/zconf.h	109;"	d
+inflateGetHeader	client/zconf.h	110;"	d
+inflateGetHeader	server/zconf.h	110;"	d
+inflateInit	client/zconf.h	111;"	d
+inflateInit	client/zlib.h	1795;"	d
+inflateInit	server/zconf.h	111;"	d
+inflateInit	server/zlib.h	1795;"	d
+inflateInit2	client/zconf.h	112;"	d
+inflateInit2	client/zlib.h	1800;"	d
+inflateInit2	server/zconf.h	112;"	d
+inflateInit2	server/zlib.h	1800;"	d
+inflateInit2_	client/zconf.h	113;"	d
+inflateInit2_	server/zconf.h	113;"	d
+inflateInit_	client/zconf.h	114;"	d
+inflateInit_	server/zconf.h	114;"	d
+inflateMark	client/zconf.h	115;"	d
+inflateMark	server/zconf.h	115;"	d
+inflatePrime	client/zconf.h	116;"	d
+inflatePrime	server/zconf.h	116;"	d
+inflateReset	client/zconf.h	117;"	d
+inflateReset	server/zconf.h	117;"	d
+inflateReset2	client/zconf.h	118;"	d
+inflateReset2	server/zconf.h	118;"	d
+inflateResetKeep	client/zconf.h	119;"	d
+inflateResetKeep	server/zconf.h	119;"	d
+inflateSetDictionary	client/zconf.h	120;"	d
+inflateSetDictionary	server/zconf.h	120;"	d
+inflateSync	client/zconf.h	121;"	d
+inflateSync	server/zconf.h	121;"	d
+inflateSyncPoint	client/zconf.h	122;"	d
+inflateSyncPoint	server/zconf.h	122;"	d
+inflateUndermine	client/zconf.h	123;"	d
+inflateUndermine	server/zconf.h	123;"	d
+inflateValidate	client/zconf.h	124;"	d
+inflateValidate	server/zconf.h	124;"	d
+inflate_copyright	client/zconf.h	125;"	d
+inflate_copyright	server/zconf.h	125;"	d
+inflate_fast	client/zconf.h	126;"	d
+inflate_fast	server/zconf.h	126;"	d
+inflate_table	client/zconf.h	127;"	d
+inflate_table	server/zconf.h	127;"	d
+internal_state	client/zconf.h	164;"	d
+internal_state	server/zconf.h	164;"	d
+intf	client/zconf.h	/^typedef int   FAR intf;$/;"	t
+intf	client/zconf.h	152;"	d
+intf	server/zconf.h	/^typedef int   FAR intf;$/;"	t
+intf	server/zconf.h	152;"	d
+is_done	server/threadsetup.c	/^	int is_done; \/\/ -1=available, 0=running, 1=done\/waiting to be canceled&joined on$/;"	m	struct:th_container	file:
+left	server/gzappend.c	/^    unsigned left;              \/* bytes available at next *\/$/;"	m	struct:__anon1	file:
+local	server/gzappend.c	89;"	d	file:
+main	client/WTFclient.c	/^int main( int argc, char** argv ){$/;"	f
+main	server/WTFserver.c	/^int main( int argc, char** argv ){$/;"	f
+main	server/gzappend.c	/^int main(int argc, char **argv)$/;"	f
+main	testthings/hashtest.c	/^int main( int argc, char** argv )$/;"	f
+main	testthings/renametest.c	/^int main( int argc, char** argv )$/;"	f
+main	testthings/rm.c	/^int main( int argc, char** argv ) $/;"	f
+main	testthings/tartest.c	/^int main(int argc, char ** argv){$/;"	f
+main	testthings/untartest.c	/^int main(int argc, char ** argv){$/;"	f
+mainboi	server/WTFserver.c	/^pthread_t mainboi; $/;"	v
+manifest	client/clientcommands.c	/^typedef struct manifest{$/;"	s	file:
+msg	client/zlib.h	/^    z_const char *msg;  \/* last error message, NULL if no error *\/$/;"	m	struct:z_stream_s
+msg	server/zlib.h	/^    z_const char *msg;  \/* last error message, NULL if no error *\/$/;"	m	struct:z_stream_s
+name	client/zlib.h	/^    Bytef   *name;      \/* pointer to zero-terminated file name or Z_NULL *\/$/;"	m	struct:gz_header_s
+name	server/gzappend.c	/^    char *name;                 \/* file name for error messages *\/$/;"	m	struct:__anon1	file:
+name	server/zlib.h	/^    Bytef   *name;      \/* pointer to zero-terminated file name or Z_NULL *\/$/;"	m	struct:gz_header_s
+name_max	client/zlib.h	/^    uInt    name_max;   \/* space at name (only when reading header) *\/$/;"	m	struct:gz_header_s
+name_max	server/zlib.h	/^    uInt    name_max;   \/* space at name (only when reading header) *\/$/;"	m	struct:gz_header_s
+next	client/clientcommands.c	/^	struct manifest* next;$/;"	m	struct:manifest	typeref:struct:manifest::manifest	file:
+next	client/zlib.h	/^    unsigned char *next;$/;"	m	struct:gzFile_s
+next	server/gzappend.c	/^    z_const unsigned char *next;    \/* next byte in buffer *\/$/;"	m	struct:__anon1	file:
+next	server/zlib.h	/^    unsigned char *next;$/;"	m	struct:gzFile_s
+next_in	client/zlib.h	/^    z_const Bytef *next_in;     \/* next input byte *\/$/;"	m	struct:z_stream_s
+next_in	server/zlib.h	/^    z_const Bytef *next_in;     \/* next input byte *\/$/;"	m	struct:z_stream_s
+next_out	client/zlib.h	/^    Bytef    *next_out; \/* next output byte will go here *\/$/;"	m	struct:z_stream_s
+next_out	server/zlib.h	/^    Bytef    *next_out; \/* next output byte will go here *\/$/;"	m	struct:z_stream_s
+numCommits	server/commands.c	/^int numCommits = 0;$/;"	v
+numDigits	server/commands.c	/^int numDigits( int num )$/;"	f
+numthreads	server/WTFserver.c	/^int numthreads;$/;"	v
+onServer	client/clientcommands.c	/^	char* onServer;$/;"	m	struct:manifest	file:
+opaque	client/zlib.h	/^    voidpf     opaque;  \/* private data object passed to zalloc and zfree *\/$/;"	m	struct:z_stream_s
+opaque	server/zlib.h	/^    voidpf     opaque;  \/* private data object passed to zalloc and zfree *\/$/;"	m	struct:z_stream_s
+openEmptyZip	client/parseprotoc.c	/^int openEmptyZip(char ** bufferbytes, int bufflen){$/;"	f
+openEmptyZip	server/parseprotoc.c	/^int openEmptyZip(char ** bufferbytes, int bufflen){$/;"	f
+openrequested	client/createprotocol.c	/^int openrequested (char ** path, char ** cmd, char ** protoc){$/;"	f
+openrequested	server/createprotocol.c	/^int openrequested (char ** path, char ** cmd, char ** protoc){$/;"	f
+os	client/zlib.h	/^    int     os;         \/* operating system *\/$/;"	m	struct:gz_header_s
+os	server/zlib.h	/^    int     os;         \/* operating system *\/$/;"	m	struct:gz_header_s
+out_func	client/zconf.h	153;"	d
+out_func	client/zlib.h	/^typedef int (*out_func) OF((void FAR *, unsigned char FAR *, unsigned));$/;"	t
+out_func	server/zconf.h	153;"	d
+out_func	server/zlib.h	/^typedef int (*out_func) OF((void FAR *, unsigned char FAR *, unsigned));$/;"	t
+parseProtoc	client/parseprotoc.c	/^void parseProtoc (char ** buf, int cm){$/;"	f
+parseProtoc	server/parseprotoc.c	/^void parseProtoc (char ** buf, int cm){$/;"	f
+pos	client/zlib.h	/^    z_off64_t pos;$/;"	m	struct:gzFile_s
+pos	server/zlib.h	/^    z_off64_t pos;$/;"	m	struct:gzFile_s
+printM	client/clientcommands.c	/^void printM( Manifest* head )$/;"	f
+projversion	client/clientcommands.c	/^	char* projversion;$/;"	m	struct:manifest	file:
+read1	server/gzappend.c	200;"	d	file:
+read4	server/gzappend.c	/^unsigned long read4(file *in)$/;"	f
+readFromSock	server/commands.c	/^int readFromSock( int csd, char** buf )$/;"	f
+readFromSocket	client/commitupdate.c	/^int readFromSocket( char** buf, int sd )$/;"	f
+readin	server/gzappend.c	/^local int readin(file *in)$/;"	f
+readmore	server/gzappend.c	/^local int readmore(file *in)$/;"	f
+removeM	client/clientcommands.c	/^int removeM( char* projname, char* filename )$/;"	f
+removed	client/clientcommands.c	/^	char* removed;$/;"	m	struct:manifest	file:
+reserved	client/zlib.h	/^    uLong   reserved;   \/* reserved for future use *\/$/;"	m	struct:z_stream_s
+reserved	server/zlib.h	/^    uLong   reserved;   \/* reserved for future use *\/$/;"	m	struct:z_stream_s
+rotate	server/gzappend.c	/^local void rotate(unsigned char *list, unsigned len, unsigned rot)$/;"	f
+searchProj	client/clientcommands.c	/^char* searchProj( char* projname )$/;"	f
+searchProj	server/WTFserver.c	/^int searchProj(char * proj){$/;"	f
+searchProject	client/WTFclient.c	/^int searchProject(char * proj){$/;"	f
+sendfile	server/sendrcvfile.c	/^void sendfile( char* filepath, int sd )$/;"	f
+set	server/threadsetup.c	/^	sigset_t *set;$/;"	m	struct:sig_waiter_args	file:
+sig_waiter_args	server/threadsetup.c	/^typedef struct sig_waiter_args{$/;"	s	file:
+sig_waiter_args	server/threadsetup.c	/^}sig_waiter_args;$/;"	t	typeref:struct:sig_waiter_args	file:
+size	server/gzappend.c	/^    int size;                   \/* 1 << size is bytes in buf *\/$/;"	m	struct:__anon1	file:
+skip	server/gzappend.c	/^local void skip(file *in, unsigned n)$/;"	f
+sockfd	server/WTFserver.c	/^int sockfd;$/;"	v
+sockfd	server/threadsetup.c	/^	int sockfd;$/;"	m	struct:sig_waiter_args	file:
+state	client/zlib.h	/^    struct internal_state FAR *state; \/* not visible by applications *\/$/;"	m	struct:z_stream_s	typeref:struct:z_stream_s::FAR
+state	server/zlib.h	/^    struct internal_state FAR *state; \/* not visible by applications *\/$/;"	m	struct:z_stream_s	typeref:struct:z_stream_s::FAR
+text	client/zlib.h	/^    int     text;       \/* true if compressed data believed to be text *\/$/;"	m	struct:gz_header_s
+text	server/zlib.h	/^    int     text;       \/* true if compressed data believed to be text *\/$/;"	m	struct:gz_header_s
+th_container	server/threadsetup.c	/^typedef struct th_container{$/;"	s	file:
+th_container	server/threadsetup.c	/^}th_container;$/;"	t	typeref:struct:th_container	file:
+thread_id	server/threadsetup.c	/^	pthread_t thread_id;$/;"	m	struct:th_container	file:
+threads	server/WTFserver.c	/^th_container threads [BACKLOG];$/;"	v
+time	client/zlib.h	/^    uLong   time;       \/* modification time *\/$/;"	m	struct:gz_header_s
+time	server/zlib.h	/^    uLong   time;       \/* modification time *\/$/;"	m	struct:gz_header_s
+total_in	client/zlib.h	/^    uLong    total_in;  \/* total number of input bytes read so far *\/$/;"	m	struct:z_stream_s
+total_in	server/zlib.h	/^    uLong    total_in;  \/* total number of input bytes read so far *\/$/;"	m	struct:z_stream_s
+total_out	client/zlib.h	/^    uLong    total_out; \/* total number of bytes output so far *\/$/;"	m	struct:z_stream_s
+total_out	server/zlib.h	/^    uLong    total_out; \/* total number of bytes output so far *\/$/;"	m	struct:z_stream_s
+traverseDir	client/createprotocol.c	/^void traverseDir( char ** path, char ** protoc){$/;"	f
+traverseDir	server/createprotocol.c	/^void traverseDir( char ** path, char ** protoc){$/;"	f
+uInt	client/zconf.h	/^typedef unsigned int   uInt;  \/* 16 bits or more *\/$/;"	t
+uInt	client/zconf.h	154;"	d
+uInt	server/zconf.h	/^typedef unsigned int   uInt;  \/* 16 bits or more *\/$/;"	t
+uInt	server/zconf.h	154;"	d
+uIntf	client/zconf.h	/^typedef uInt  FAR uIntf;$/;"	t
+uIntf	client/zconf.h	155;"	d
+uIntf	server/zconf.h	/^typedef uInt  FAR uIntf;$/;"	t
+uIntf	server/zconf.h	155;"	d
+uLong	client/zconf.h	/^typedef unsigned long  uLong; \/* 32 bits or more *\/$/;"	t
+uLong	client/zconf.h	156;"	d
+uLong	server/zconf.h	/^typedef unsigned long  uLong; \/* 32 bits or more *\/$/;"	t
+uLong	server/zconf.h	156;"	d
+uLongf	client/zconf.h	/^typedef uLong FAR uLongf;$/;"	t
+uLongf	client/zconf.h	157;"	d
+uLongf	server/zconf.h	/^typedef uLong FAR uLongf;$/;"	t
+uLongf	server/zconf.h	157;"	d
+uncompress	client/zconf.h	129;"	d
+uncompress	server/zconf.h	129;"	d
+uncompress2	client/zconf.h	130;"	d
+uncompress2	server/zconf.h	130;"	d
+unzip	client/parseprotoc.c	/^void unzip(){$/;"	f
+unzip	server/parseprotoc.c	/^void unzip(){$/;"	f
+update	client/commitupdate.c	/^int update( char* projname, int ssd ){$/;"	f
+upgrade	client/commitupdate.c	/^int upgrade( char* projname, int ssd )$/;"	f
+upgrade	server/commands.c	/^int upgrade( int csd )$/;"	f
+vnum	client/clientcommands.c	/^	char* vnum;$/;"	m	struct:manifest	file:
+voidp	client/zconf.h	/^   typedef Byte       *voidp;$/;"	t
+voidp	client/zconf.h	/^   typedef void       *voidp;$/;"	t
+voidp	client/zconf.h	158;"	d
+voidp	server/zconf.h	/^   typedef Byte       *voidp;$/;"	t
+voidp	server/zconf.h	/^   typedef void       *voidp;$/;"	t
+voidp	server/zconf.h	158;"	d
+voidpc	client/zconf.h	/^   typedef Byte const *voidpc;$/;"	t
+voidpc	client/zconf.h	/^   typedef void const *voidpc;$/;"	t
+voidpc	client/zconf.h	159;"	d
+voidpc	server/zconf.h	/^   typedef Byte const *voidpc;$/;"	t
+voidpc	server/zconf.h	/^   typedef void const *voidpc;$/;"	t
+voidpc	server/zconf.h	159;"	d
+voidpf	client/zconf.h	/^   typedef Byte FAR   *voidpf;$/;"	t
+voidpf	client/zconf.h	/^   typedef void FAR   *voidpf;$/;"	t
+voidpf	client/zconf.h	160;"	d
+voidpf	server/zconf.h	/^   typedef Byte FAR   *voidpf;$/;"	t
+voidpf	server/zconf.h	/^   typedef void FAR   *voidpf;$/;"	t
+voidpf	server/zconf.h	160;"	d
+writeM	client/clientcommands.c	/^void writeM( char* manpath, Manifest* head )$/;"	f
+writeToSocket	client/WTFclient.c	/^int writeToSocket(char ** buffer, int sd){$/;"	f
+writeToSocket	server/WTFserver.c	/^int writeToSocket(char ** buf, int cfd){$/;"	f
+xflags	client/zlib.h	/^    int     xflags;     \/* extra flags (not used when writing a gzip file) *\/$/;"	m	struct:gz_header_s
+xflags	server/zlib.h	/^    int     xflags;     \/* extra flags (not used when writing a gzip file) *\/$/;"	m	struct:gz_header_s
+zError	client/zconf.h	132;"	d
+zError	server/zconf.h	132;"	d
+z_adler32_combine	client/zlib.h	1853;"	d
+z_adler32_combine	server/zlib.h	1853;"	d
+z_const	client/zconf.h	235;"	d
+z_const	client/zconf.h	237;"	d
+z_const	server/zconf.h	235;"	d
+z_const	server/zconf.h	237;"	d
+z_crc32_combine	client/zlib.h	1854;"	d
+z_crc32_combine	server/zlib.h	1854;"	d
+z_crc_t	client/zconf.h	/^   typedef Z_U4 z_crc_t;$/;"	t
+z_crc_t	client/zconf.h	/^   typedef unsigned long z_crc_t;$/;"	t
+z_crc_t	server/zconf.h	/^   typedef Z_U4 z_crc_t;$/;"	t
+z_crc_t	server/zconf.h	/^   typedef unsigned long z_crc_t;$/;"	t
+z_deflateInit	client/zlib.h	1779;"	d
+z_deflateInit	server/zlib.h	1779;"	d
+z_deflateInit2	client/zlib.h	1783;"	d
+z_deflateInit2	server/zlib.h	1783;"	d
+z_gzgetc	client/zlib.h	1824;"	d
+z_gzgetc	client/zlib.h	1825;"	d
+z_gzgetc	server/zlib.h	1824;"	d
+z_gzgetc	server/zlib.h	1825;"	d
+z_gzoffset	client/zlib.h	1852;"	d
+z_gzoffset	server/zlib.h	1852;"	d
+z_gzopen	client/zlib.h	1849;"	d
+z_gzopen	server/zlib.h	1849;"	d
+z_gzseek	client/zlib.h	1850;"	d
+z_gzseek	server/zlib.h	1850;"	d
+z_gztell	client/zlib.h	1851;"	d
+z_gztell	server/zlib.h	1851;"	d
+z_inflateBackInit	client/zlib.h	1789;"	d
+z_inflateBackInit	server/zlib.h	1789;"	d
+z_inflateInit	client/zlib.h	1781;"	d
+z_inflateInit	server/zlib.h	1781;"	d
+z_inflateInit2	client/zlib.h	1786;"	d
+z_inflateInit2	server/zlib.h	1786;"	d
+z_longlong	client/zconf.h	243;"	d
+z_longlong	client/zconf.h	252;"	d
+z_longlong	server/zconf.h	243;"	d
+z_longlong	server/zconf.h	252;"	d
+z_off64_t	client/zconf.h	508;"	d
+z_off64_t	client/zconf.h	511;"	d
+z_off64_t	client/zconf.h	513;"	d
+z_off64_t	server/zconf.h	508;"	d
+z_off64_t	server/zconf.h	511;"	d
+z_off64_t	server/zconf.h	513;"	d
+z_off_t	client/zconf.h	480;"	d
+z_off_t	client/zconf.h	504;"	d
+z_off_t	server/zconf.h	480;"	d
+z_off_t	server/zconf.h	504;"	d
+z_size_t	client/zconf.h	/^     typedef size_t z_size_t;$/;"	t
+z_size_t	client/zconf.h	/^     typedef unsigned NO_SIZE_T z_size_t;$/;"	t
+z_size_t	client/zconf.h	/^     typedef unsigned long z_size_t;$/;"	t
+z_size_t	client/zconf.h	/^   typedef unsigned long z_size_t;$/;"	t
+z_size_t	server/zconf.h	/^     typedef size_t z_size_t;$/;"	t
+z_size_t	server/zconf.h	/^     typedef unsigned NO_SIZE_T z_size_t;$/;"	t
+z_size_t	server/zconf.h	/^     typedef unsigned long z_size_t;$/;"	t
+z_size_t	server/zconf.h	/^   typedef unsigned long z_size_t;$/;"	t
+z_stream	client/zlib.h	/^} z_stream;$/;"	t	typeref:struct:z_stream_s
+z_stream	server/zlib.h	/^} z_stream;$/;"	t	typeref:struct:z_stream_s
+z_stream_s	client/zlib.h	/^typedef struct z_stream_s {$/;"	s
+z_stream_s	server/zlib.h	/^typedef struct z_stream_s {$/;"	s
+z_streamp	client/zlib.h	/^typedef z_stream FAR *z_streamp;$/;"	t
+z_streamp	server/zlib.h	/^typedef z_stream FAR *z_streamp;$/;"	t
+zalloc	client/zlib.h	/^    alloc_func zalloc;  \/* used to allocate the internal state *\/$/;"	m	struct:z_stream_s
+zalloc	server/zlib.h	/^    alloc_func zalloc;  \/* used to allocate the internal state *\/$/;"	m	struct:z_stream_s
+zcalloc	client/zconf.h	134;"	d
+zcalloc	server/zconf.h	134;"	d
+zcfree	client/zconf.h	135;"	d
+zcfree	server/zconf.h	135;"	d
+zerr	client/zpipe.c	/^void zerr(int ret)$/;"	f
+zerr	server/zpipe.c	/^void zerr(int ret)$/;"	f
+zfree	client/zlib.h	/^    free_func  zfree;   \/* used to free the internal state *\/$/;"	m	struct:z_stream_s
+zfree	server/zlib.h	/^    free_func  zfree;   \/* used to free the internal state *\/$/;"	m	struct:z_stream_s
+zlibCompileFlags	client/zconf.h	137;"	d
+zlibCompileFlags	server/zconf.h	137;"	d
+zlibVersion	client/zconf.h	138;"	d
+zlibVersion	server/zconf.h	138;"	d
+zlib_version	client/zlib.h	214;"	d
+zlib_version	server/zlib.h	214;"	d
