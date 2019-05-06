@@ -253,18 +253,46 @@ void parseProtoc (char ** buf, int cm){
 			type = 1;
 
 		}else if((strcmp("sendsman", cmdd)) == 0){
-			filename = malloc((sizeof(char)*9)); //filename (path)
+			char * name = tok+7;
+			int i=0;
+			for(i=0; i<strlen(name); i++){
+				if(name[i] == '/'){ break; }
+			}
+
+			char * projn = (char*)malloc(sizeof(char)*i);
+			strncpy(projn, name, i);
+			
+		
+			filename = (char*)malloc(sizeof(char)*8+i+1);
 			filename[0] = '\0';
+			//snprintf(protocpath, 14 + strlen(*projj)+1, "./protocol%s.txt", *projj);
+			snprintf(filename, 8+i+1+1, "./.s_man%s",projn); 
+
+			//filename = malloc((sizeof(char)*9)); //filename (path)
 			//.s_man
-			snprintf(filename, 9, "./.s_man"); 
+			//snprintf(filename, 9, "./.s_man"); 
 			printf("FILE NAME:  %s\n", filename);
 			type = 2;
 
 		}else if(( strcmp("sendhist", cmdd)) == 0){
-			filename = malloc((sizeof(char)*10)); //filename (path)
+			char * name = tok+7;
+			int i=0;
+			for(i=0; i<strlen(name); i++){
+				if(name[i] == '/'){ break; }
+			}
+
+			char * projn = (char*)malloc(sizeof(char)*i);
+			strncpy(projn, name, i);
+			
+		
+			filename = (char*)malloc(sizeof(char)*12+i+1);
 			filename[0] = '\0';
+			//snprintf(protocpath, 14 + strlen(*projj)+1, "./protocol%s.txt", *projj);
+			snprintf(filename, 12+i+1+1, "./.s_history%s",projn); 
+			//filename = malloc((sizeof(char)*10)); //filename (path)
+			//filename[0] = '\0';
 			//.s_man
-			snprintf(filename, 10, "./s_history"); 
+			//snprintf(filename, 10, "./s_history"); 
 			printf("FILE NAME:  %s\n", filename);
 			type = 3;
 		}
