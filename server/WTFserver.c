@@ -162,7 +162,11 @@ void * handleClient(void * thr_cont){
 
 	//LOCK LL
 	
+<<<<<<< HEAD
 	pthread_mutex_unlock(&LL_lock);
+=======
+	pthread_mutex_lock(&LL_lock);
+>>>>>>> tesssttt
 	if(strcmp(bufread, "checkout") == 0){
 	
 		int retval = checkoutProj(cfd);		
@@ -666,7 +670,7 @@ int searchProj(char * proj){
 		free(path);
 		return -5;
 	}
-	
+	closedir(dirp);	
 	free(path);
 	closedir(dirp);
 	//printf("done search\n");
