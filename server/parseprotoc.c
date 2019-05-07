@@ -239,7 +239,7 @@ void parseProtoc (char ** buf, int cm){
 
 		}
 			
-	}else if(((strcmp("sendfile", tok)) == 0) || ((strcmp("sendsman", tok)) == 0)|| ((strcmp("sendhist", tok))==0) ) {
+	}else if(((strcmp("endfile", tok) == 0) || (strcmp("sendfile", tok)) == 0) || ((strcmp("sendsman", tok)) == 0)|| ((strcmp("sendhist", tok))==0) ) {
 		char * cmdd = (char*)malloc(sizeof(char)*9);
 		strcpy(cmdd, tok);
 		tok = strtok(NULL, ":"); // -3
@@ -250,7 +250,7 @@ void parseProtoc (char ** buf, int cm){
 		
 		char * filename;
 
-		if((strcmp("sendfile", cmdd)) == 0){
+		if(strcmp("endfile", cmdd) == 0 || (strcmp("sendfile", cmdd)) == 0){
 			filename = malloc(filename_size +1); //filename (path)
 			filename[0] = '\0';
 			snprintf(filename, filename_size+1, tok); 

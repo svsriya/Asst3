@@ -341,6 +341,7 @@ void createProtocol (char ** path, char ** cmd, char** projj,  int sockd){
                		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 	exit(2);
 		}
+		printf( "written = %d\n", written );
 		i+=written;
 	}	
 	
@@ -352,6 +353,7 @@ void createProtocol (char ** path, char ** cmd, char** projj,  int sockd){
                		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 	exit(2);
 		}
+		printf( "written = %d\n", written );
 		i+=written;
 	}
 

@@ -48,7 +48,7 @@ int numthreads;
 pthread_t mainboi; 
 int sockfd;
 PROJECT * PROJECTS_LL = NULL;
-//pthread_mutex_t LL_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t LL_lock = PTHREAD_MUTEX_INITIALIZER;
 
 
 /*function prototypes*/
@@ -162,6 +162,8 @@ void * handleClient(void * thr_cont){
 
 	//LOCK LL
 	
+
+	pthread_mutex_lock(&LL_lock);
 	if(strcmp(bufread, "checkout") == 0){
 	
 		int retval = checkoutProj(cfd);		
@@ -192,12 +194,22 @@ void * handleClient(void * thr_cont){
 		if( destroy(cfd) == -1 ){
 			printf( "Error: failed to destroy the project.\n"); //exit(2);
 		}
-	}else{
+	}else if( strcmp( bufread, "commit" ) == 0 ){
+		if( commit(cfd) == -1 ){
+			printf( "Error: failed to commit the project. \n" );
+		}
+	}
+	else if( strcmp( bufread, "upgrade" ) == 0 ){
+		if( upgrade(cfd) == -1 ){
+			printf( "Error: failed to upgrade project.\n" );
+		}
+	}	
+	else{
 		//while(1);
 		printf("Error: invalid command.\n"); //exit(2);
 	}	
 
-	//pthread_mutex_unlock(&LL_lock);
+	pthread_mutex_unlock(&LL_lock);
 	//printf("Server disconnected from client.\n");
 	free(bufread);
 	close(cfd);
@@ -665,8 +677,9 @@ int searchProj(char * proj){
 		free(path);
 		return -5;
 	}
-	
+	closedir(dirp);	
 	free(path);
+	//closedir(dirp);
 	//printf("done search\n");
 	return 0;	
 

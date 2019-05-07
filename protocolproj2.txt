@@ -1,5 +1,6 @@
-1
+sendsman:-3:22:./root/proj2/.Manifest:303:1
 Filename	Version	On Serv	Removed	Hash
 proj2/dirp.txt	0	1	0	b0f3bb9f85758ac491f462a74664fc089c15f1a00b4da0480bee39721d8a7965
 proj2/hello.txt	0	1	0	e50ab0839519c9c2c7766e0cd40727c9ebbcdae90921025610da122007d3d924
 proj2/dir/meep.txt	0	1	0	89af06417b11115f9c0d8157875ea72828139a634bceb96ffa78d752e9959125
+:

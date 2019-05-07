@@ -28,10 +28,41 @@ int readFromSock( int, char** );
 int commit( int );
 int numDigits( int );
 int push( int );
+int getProjVersion( char*);
+
+int getProjVersion( char* projname )
+{
+	// open the root/projname/.Manifest
+	// read until \n to find project version
+	char* manpath = (char*)malloc( 16+strlen(projname) );
+	manpath[0] = '\0';
+	snprintf( manpath, 16+strlen(projname), "root/%s/.Manifest", projname );
+	int mfd;
+
+
+}
 
 int push( int csd )
 {
-
+	// push cmd received, send "okay" to client to acknowledge
+	char* success = "okay";
+	char* projname;
+	writeToSocket( &success, csd );
+	readFromSock( csd, &projname );	// get the project name from the client
+	if( searchProj( projname ) == -5 ){
+		// project not found, send error 
+		char* err = "projnotfound";
+		writeToSocket( &err, csd );
+		return -1;
+	}//send that project was found
+	writeToSocket( &success, csd );
+	// read back the .Commit sent in
+	char* commit;
+	readFromSock( csd, &commit );
+	parseProtoc( &commit, 1 ); //.Commit reconstructed!
+	// check that it matches one of the ones on file
+	// send "invalid" if not
+	// 
 }
 
 int numDigits( int num )
@@ -72,6 +103,7 @@ int commit( int csd )
         	printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 	}
 	printf( "%s has been saved\n", newcp );
+	numCommits++;
 	return 0;
 }
 

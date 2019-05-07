@@ -159,11 +159,14 @@ void traverseDir( char ** path, char ** protoc){
 					printf("file --> protocol successful \n");
 				//	return;
 				}
+				close(ffd);
 			}
 			free(tmp);
 		}
 		opd++;
 	}
+	close(pfd);
+	closedir(dirp);
 	//if opd<=2, means directory is empty --> just return, protocol already written to before traverseDir called
 	return;
 }
@@ -245,7 +248,8 @@ int openrequested (char ** path, char ** cmd, char ** protoc){
 						printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 						exit(2);
 					}else{
-						free(append);
+						free(append); close(pfd);
+						close(fd);
 						return pfd;
 					}
 				}
@@ -284,7 +288,8 @@ int openrequested (char ** path, char ** cmd, char ** protoc){
 		}else{
 			free(append);
 			printf("making call to traverseDir...\n");
-			traverseDir(path, protoc);	
+			traverseDir(path, protoc);
+			close(pfd);	
 			return pfd;
 		}		
 	} 
@@ -357,6 +362,7 @@ void createProtocol (char ** path, char ** cmd, char** projj,  int sockd){
 
 	printf(ANSI_COLOR_YELLOW "protocol sent to client\n" ANSI_COLOR_RESET, len);
 	free(buf);
-	free(protocpath);	
+	free(protocpath);
+	close(pfd);	
 	return;
 }

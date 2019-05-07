@@ -1,0 +1,21 @@
+WTF Testing
+
+Structure of project:
+
+- WTF
+|
+- WTFserver
+|
+- server
+	|_ contains all .c and .h source code
+
+
+
+For testing commands:
+
+1. configure <ip address> <port>
+	- nothing specific for testcases
+	- this command simply takes given ip and port numbers and puts them in a .configure file
+2. checkout <projname>
+	
+

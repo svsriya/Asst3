@@ -129,6 +129,7 @@ int searchProject(char * proj){
 		return -5;
 	}	
 	free(path);
+	closedir(dirp);
 	return 0;
 
 }
@@ -158,6 +159,7 @@ int writeToSocket(char ** buffer, int sd){
 	i = 0;
 	while( wtres > 0 ){
 		wtres = write( sd, (*buffer)+i, strlen(*buffer)-i );
+		printf( "wtres = %d\n" , wtres );
 		if ( wtres == -1){        
                        	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                        	return -1;
@@ -646,6 +648,9 @@ int main( int argc, char** argv ){
 		}else if( strcmp( argv[1], "update" ) == 0 ){
 			if( update( argv[2], sd ) == -1 )
 				printf( "Error: failed to update the project\n" );
+		}else if( strcmp( argv[1], "upgrade" ) == 0 ){
+			if( upgrade( argv[2], sd ) == -1 )
+				printf( "Error: failed to upgrade the project\n" );
 		}	
 		freeaddrinfo( result );
 //		free( bufferbytes );

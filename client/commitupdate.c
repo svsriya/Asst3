@@ -122,10 +122,10 @@ int update( char* projname, int ssd ){
 	// server's .Manifest = .s_manproj<projname>
 	// client's .Manifest = .Manifest
 	if( currentversion(&projname, ssd, 1) == -1 ) return -1;
-	char* sman = (char*)malloc( strlen(projname) + 11 );
+	char* sman = (char*)malloc( strlen(projname) + 7 );
 	sman[0] = '\0';
-	snprintf( sman, strlen(projname)+11, ".s_manproj%s", projname );
-	char* cman = (char*)malloc( strlen(projpath) + 11 );
+	snprintf( sman, strlen(projname)+11, ".s_man%s", projname );
+	char* cman = (char*)malloc( strlen(projpath) + 7 );
 	cman[0] = '\0';
 	strcat( cman, projpath );
 	strcat( cman, "/.Manifest" );
@@ -431,6 +431,7 @@ int upgrade( char* projname, int ssd )
 			free( tmp );
 		}
 		i = j + 1;	//pointing at place after \n
+		printf( "buf: %s\n", &buf[i] );
 	}  
 	// get the server's .Manifest to overwrite the client's
 	manpath = (char*)malloc( 16 + strlen(projname) );
@@ -499,9 +500,9 @@ int commit( char* projname, int ssd )
 	// send buffer to parseprotocol to create manifest
 	parseProtoc( &buf, 1 );	
 	// now .s_man exists!
-	char* sman = (char*)malloc( strlen(projname)+11);
+	char* sman = (char*)malloc( strlen(projname)+7);
 	sman[0] = '\0';
-	snprintf( sman, strlen(projpath)+11, ".s_manproj%s", projname );
+	snprintf( sman, strlen(projpath)+7, ".s_man%s", projname );
 	char* cman = (char*)malloc( strlen(projpath) + 11 );
 	cman[0] = '\0';
 	strcat( cman, projpath );
@@ -635,6 +636,75 @@ int commit( char* projname, int ssd )
 
 int push( char* projname, int ssd )
 {
+	/*
+ *	error checks:
+ *	1. project doesn't exist on server
+ *	2. .Update has M codes
+ **/
+	// open .Update file and read, check strtok and check for 'M'
+	struct stat file_stat;
+	char* filebuf;
+	int ufd;
+	char* updatepath = (char*)malloc( 9+strlen(projname));
+	updatepath[0] = '\0';
+	snprintf( updatepath, 9+strlen(projname), "%s/.Update", projname );
+	if( stat( updatepath, &file_stat ) == -1 )
+	{	
+		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+		return -1;
+	}
+	if( file_stat.st_size != 0 )
+	{
+		filebuf = (char*)malloc( file_stat.st_size + 1 );
+		if( (ufd = open( updatepath, O_RDONLY )) == -1 )
+		{
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+			return -1;
+		}
+		if( read( ufd, filebuf, file_stat.st_size ) == -1 )
+		{	
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+			return -1;
+		}
+		filebuf[file_stat.st_size] = '\0';
+		// strtok by line
+		char* token = strtok( filebuf, "\n" );
+		while( token != NULL )
+		{
+			char* line = token;
+			if( line[0] == 'M' )
+			{
+				printf( "Error: a .Update file was found with \"M\" codes. Please upgrade your project first\n" );
+				return -1;
+			}
+			token = strtok( NULL, "\n" );
+		}		
+		free( filebuf );
+		close(ufd);
+	}
+	// send the push command to the server, and read "okay" back
+	char* cmd = "push";
+	char* rcv;
+	writeToSocket( &cmd, ssd );
+	readFromSocket( &rcv, ssd ); // "okay"
+	free( rcv );
+	// send the project name to server and rcv okay
+	writeToSocket( &projname, ssd );	// send the project name
+	readFromSocket( &rcv, ssd );	// read whether found or not
+	if( strcmp( rcv, "projnotfound" ) == 0 )
+	{
+		free(rcv);
+		printf( "Error: project not found by the server\n" );
+		return -1;
+	}  
+	free(rcv);
+	// send the .Commit to the server
+	char* cmtpath = (char*)malloc( strlen(projname)+9);
+	cmtpath[0] = '\0';
+	snprintf( cmtpath, strlen(projname)+9, "%s/.Commit", projname );
+	char* protocolpath = (char*)malloc( strlen(projname)+5);
+	snprintf( protocolpath, strlen(projname)+5, "push%s", projname );
+	createProtocol( &cmtpath, &cmd, &protocolpath, ssd );
 	
 }
 /*
