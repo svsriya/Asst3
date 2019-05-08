@@ -1,3 +1,0 @@
-senddir:-4:11:./root/proj:-3:21:./root/proj/.Manifest:39:1
-Filename	Version	On Serv	Removed	Hash:-3:19:./root/proj/history:8:create
-0:

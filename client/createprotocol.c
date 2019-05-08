@@ -81,7 +81,7 @@ void traverseDir( char ** path, char ** protoc){
 	}
 
 	while( (dp = readdir(dirp)) != NULL ){
-		printf("dirp name: %s\n", dp->d_name);
+		//printf("dirp name: %s\n", dp->d_name);
 		char * tmp = malloc(strlen(*path) + strlen(dp->d_name) +1 +1);
 		tmp[0] = '\0';
 		snprintf(tmp, strlen(*path) + strlen(dp->d_name) +1 +1, "%s/%s",*path, dp->d_name);
@@ -90,7 +90,7 @@ void traverseDir( char ** path, char ** protoc){
 		}else{
 			if(S_ISDIR(filestat.st_mode) ==1){ //directory encountered
 				// append "-4:bytesname:name:" to protocol
-				printf(ANSI_COLOR_YELLOW "directory detected\n" ANSI_COLOR_RESET);
+				//printf(ANSI_COLOR_YELLOW "directory detected\n" ANSI_COLOR_RESET);
 				char bytesname[10];
 				sprintf( bytesname, "%d", strlen(tmp) );
 					
@@ -116,7 +116,7 @@ void traverseDir( char ** path, char ** protoc){
 				//append "-3:bytesname:name:bytescontent:content:" to protocol
 				//get filename bytes
 
-				printf(ANSI_COLOR_YELLOW "file  detected\n" ANSI_COLOR_RESET);
+			//	printf(ANSI_COLOR_YELLOW "file  detected\n" ANSI_COLOR_RESET);
 				char bytesname[10];
 				sprintf( bytesname, "%d", strlen(tmp) );
 					
@@ -147,7 +147,7 @@ void traverseDir( char ** path, char ** protoc){
 				strcat( append, bytesdata); strcat(append, ":");
 				strcat( append, buf); strcat(append, ":");	
 					
-				printf("appendfile: %s\n", append);
+				//printf("appendfile: %s\n", append);
 
 				int res;
 				res = write(pfd, append, strlen(append));
@@ -184,9 +184,9 @@ int openrequested (char ** path, char ** cmd, char ** protoc){
 	struct dirent * dp;
 	struct stat filestat;
 
-	printf("requested_path: %s\n",*path);
-	printf("protoc: %s\n", *protoc);	
-	printf("entered openrequested!\n");
+	//printf("requested_path: %s\n",*path);
+	//printf("protoc: %s\n", *protoc);	
+	//printf("entered openrequested!\n");
 	//create protocol file to append to --> will be destroyed once delivered to client
 	int pfd;
 	char * protocpath = *protoc;
@@ -262,7 +262,7 @@ int openrequested (char ** path, char ** cmd, char ** protoc){
 			//continue recursing, call traverseDir here
 		*/
 
-		printf("client requested a directory!\n");
+		//printf("client requested a directory!\n");
 		char bytesname[10];
 		sprintf( bytesname, "%d", strlen(*path) );
 					
@@ -274,7 +274,7 @@ int openrequested (char ** path, char ** cmd, char ** protoc){
 		strcat( append, bytesname); strcat (append, ":");
 		strcat( append, *path); strcat(append, ":");
 				
-		printf("append_dir: %s\n", append);
+		//printf("append_dir: %s\n", append);
 
 		int res;
 		res = write(pfd, append, strlen(append));
@@ -283,7 +283,7 @@ int openrequested (char ** path, char ** cmd, char ** protoc){
 			exit(2);
 		}else{
 			free(append);
-			printf("making call to traverseDir...\n");
+			//printf("making call to traverseDir...\n");
 			traverseDir(path, protoc);	
 			return pfd;
 		}		
@@ -299,11 +299,11 @@ void createProtocol (char ** path, char ** cmd, char** projj,  int sockd){
 	char * protocpath = (char *)malloc(sizeof(char)*14 + strlen(*projj) + 1);
 	protocpath[0] = '\0';
 	snprintf(protocpath, 14 + strlen(*projj)+1, "./protocol%s.txt", *projj);
-	printf("protocpath: %s\n", protocpath);
+	//printf("protocpath: %s\n", protocpath);
 
-	printf("pATHO: %s\n", *path);
+	//printf("pATHO: %s\n", *path);
 	int openres = openrequested (path, cmd, &protocpath);
-	printf("openres done\n");	
+	//printf("openres done\n");	
 	struct stat filestat;
 	
 //	char* protocpath = "./protocol.txt";
@@ -341,7 +341,7 @@ void createProtocol (char ** path, char ** cmd, char** projj,  int sockd){
                		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 	exit(2);
 		}
-		printf( "written = %d\n", written );
+		//printf( "written = %d\n", written );
 		i+=written;
 	}	
 	
@@ -353,7 +353,7 @@ void createProtocol (char ** path, char ** cmd, char** projj,  int sockd){
                		printf( ANSI_COLOR_CYAN "Errno: %s Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
                 	exit(2);
 		}
-		printf( "written = %d\n", written );
+		//printf( "written = %d\n", written );
 		i+=written;
 	}
 

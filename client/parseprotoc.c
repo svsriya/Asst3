@@ -48,7 +48,7 @@ int openEmptyZip(char ** bufferbytes, int bufflen){
 }
 
 void unzip(){
-	printf("trying to unzip gzip\n");
+	//printf("trying to unzip gzip\n");
 	char * path = "./protocol.txt";
 	FILE * fd_pt;
 
@@ -87,7 +87,7 @@ void createDir(int subdir_size, char ** subdir_name){
 	char * dir = dirname(path);
 	char * base = basename(path2);
 
-	printf(ANSI_COLOR_CYAN "dir: %s base: %s\n"  ANSI_COLOR_RESET, dir, base);
+//	printf(ANSI_COLOR_CYAN "dir: %s base: %s\n"  ANSI_COLOR_RESET, dir, base);
 	
 	char * maindir = malloc(sizeof(char)*10000);
 	maindir = getcwd(maindir, 10000);
@@ -105,7 +105,7 @@ void createDir(int subdir_size, char ** subdir_name){
 }
 
 void createFile(int filename_size, char ** filename, int filedata_size, char ** filedata){	
-	printf("FILENAMEinCF: %s\n", *filename);
+	//printf("FILENAMEinCF: %s\n", *filename);
 	char * path = malloc(filename_size +1);
 	path[0] = '\0';
 	snprintf(path, filename_size+1, *filename);
@@ -138,7 +138,15 @@ void createFile(int filename_size, char ** filename, int filedata_size, char ** 
 		exit(2);	
 	}
 
-	chdir(dir);
+	if( chdir(dir) == -1 )	//dir does not exist, so mkdir
+	{
+		if( mkdir( dir, S_IRUSR | S_IWUSR | S_IXUSR ) == -1 )
+		{
+			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
+			exit(2);
+		}
+		chdir(dir);
+	}
 
 	int newfd;
 	//create file
@@ -169,7 +177,7 @@ void parseProtoc (char ** buf, int cm){
 	char * protoc =  *buf;
 	char * tok = strtok (protoc, ":");
 
-	printf(ANSI_COLOR_YELLOW "cmd: %s\n" ANSI_COLOR_RESET, tok);
+//	printf(ANSI_COLOR_YELLOW "cmd: %s\n" ANSI_COLOR_RESET, tok);
 	if( (strcmp("senddir", tok)) == 0){
 		//project folder being sent
 		//3 things to look for
@@ -204,7 +212,7 @@ void parseProtoc (char ** buf, int cm){
 				subdirname[0] = '\0';
 				snprintf(subdirname, strlen(tok)+1, tok);
 
-				printf(ANSI_COLOR_CYAN "subdir size: %d subdir_name: %s\n" ANSI_COLOR_RESET, subdirname_size, subdirname);
+			//	printf(ANSI_COLOR_CYAN "subdir size: %d subdir_name: %s\n" ANSI_COLOR_RESET, subdirname_size, subdirname);
 				
 				createDir(subdirname_size, &subdirname);
 				free(subdirname);
@@ -230,7 +238,7 @@ void parseProtoc (char ** buf, int cm){
 				snprintf(filedata, filedata_size+1, tok);
 
 			
-				printf(ANSI_COLOR_CYAN "filename_size: %d  file_name: %s fildata_size: %d  file_data: %s\n" ANSI_COLOR_RESET, filename_size, filename, filedata_size, filedata);
+				//printf(ANSI_COLOR_CYAN "filename_size: %d  file_name: %s fildata_size: %d  file_data: %s\n" ANSI_COLOR_RESET, filename_size, filename, filedata_size, filedata);
 
 				createFile(filename_size, &filename, filedata_size, &filedata);
 				free(filename); free(filedata);
@@ -253,7 +261,7 @@ void parseProtoc (char ** buf, int cm){
 			filename = malloc(filename_size +1); //filename (path)
 			filename[0] = '\0';
 			snprintf(filename, filename_size+1, tok); 
-			printf("FILE NAME:  %s\n", filename);
+			//printf("FILE NAME:  %s\n", filename);
 			type = 1;
 
 		}else if((strcmp("sendsman", cmdd)) == 0){
@@ -275,7 +283,7 @@ void parseProtoc (char ** buf, int cm){
 			//filename = malloc((sizeof(char)*9)); //filename (path)
 			//.s_man
 			//snprintf(filename, 9, "./.s_man"); 
-			printf("FILE NAME:  %s\n", filename);
+		//	printf("FILE NAME:  %s\n", filename);
 			type = 2;
 
 		}else if(( strcmp("sendhist", cmdd)) == 0){
@@ -297,7 +305,7 @@ void parseProtoc (char ** buf, int cm){
 			//filename[0] = '\0';
 			//.s_man
 			//snprintf(filename, 10, "./s_history"); 
-			printf("FILE NAME:  %s\n", filename);
+		//	printf("FILE NAME:  %s\n", filename);
 			type = 3;
 		}
 
@@ -310,7 +318,7 @@ void parseProtoc (char ** buf, int cm){
 		filedata[0] = '\0';
 		snprintf(filedata, filedata_size+1, tok);
 	
-		printf(ANSI_COLOR_CYAN "filename_size: %d  file_name: %s fildata_size: %d  file_data: %s\n" ANSI_COLOR_RESET, filename_size, filename, filedata_size, filedata);
+		//printf(ANSI_COLOR_CYAN "filename_size: %d  file_name: %s fildata_size: %d  file_data: %s\n" ANSI_COLOR_RESET, filename_size, filename, filedata_size, filedata);
 
 		createFile(filename_size, &filename, filedata_size, &filedata);
 		free(filename); free(filedata);

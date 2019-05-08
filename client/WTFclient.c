@@ -42,7 +42,16 @@ int currentversion(char **, int, int);
 int history (char **, int);
 int writeToSocket( char **, int);
 int searchProject(char *);
+int rollback( char*, char*, int );
 
+int rollback( char* projname, char* projver,int sd )
+{
+	char* cmd = "rollback";
+	char* buf;
+	writeToSocket( &cmd, sd );	// send rollback command
+	readFromSocket( &buf, sd );	// read back okay	
+	 
+} 
 
 int history(char ** projname, int sd){
 	char * cmd = (char*)malloc(sizeof(char)*8);
@@ -96,7 +105,7 @@ int history(char ** projname, int sd){
 		return -1;
 	}else{
 		parseProtoc(&bufferbytes, 0);				
-		printf( ANSI_COLOR_MAGENTA "%s\n" ANSI_COLOR_RESET, bufferbytes );
+		//printf( ANSI_COLOR_MAGENTA "%s\n" ANSI_COLOR_RESET, bufferbytes );
 		free(bufferbytes);
 
 		//now sys call to output to stdout
@@ -122,7 +131,7 @@ int searchProject(char * proj){
 	path[0]='\0';
 	strcat(path, "./");
 	strcat(path, proj);
-	printf("PATHSearch: %s\n", path);
+	//printf("PATHSearch: %s\n", path);
 	if((dirp = opendir(path)) == NULL){
 		printf(ANSI_COLOR_CYAN "project not found in client.\n" ANSI_COLOR_RESET);
 		free(path);
@@ -146,7 +155,7 @@ int writeToSocket(char ** buffer, int sd){
 	int i = 0;
 	while( wtres > 0 ){
 		wtres = write( sd, num+i, strlen(num)-i );
-		printf("wtres bytes: %d\n", wtres);
+		//printf("wtres bytes: %d\n", wtres);
 		if ( wtres == -1){	
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			return -1;
@@ -159,7 +168,7 @@ int writeToSocket(char ** buffer, int sd){
 	i = 0;
 	while( wtres > 0 ){
 		wtres = write( sd, (*buffer)+i, strlen(*buffer)-i );
-		printf( "wtres = %d\n" , wtres );
+		//printf( "wtres = %d\n" , wtres );
 		if ( wtres == -1){        
                        	printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                        	return -1;
@@ -651,6 +660,13 @@ int main( int argc, char** argv ){
 		}else if( strcmp( argv[1], "upgrade" ) == 0 ){
 			if( upgrade( argv[2], sd ) == -1 )
 				printf( "Error: failed to upgrade the project\n" );
+		}else if( strcmp( argv[1], "push" ) == 0 ){
+			if( push( argv[2], sd ) == -1 )
+				printf( "Error: failed to push the project\n" );
+			else printf( "project has been pushed\n" );
+		}else if( strcmp( argv[1], "rollback" ) == 0 ){
+			if( rollback( argv[2], argv[3], sd ) == -1 )
+				printf( "Error: failed to rollback\n" );
 		}	
 		freeaddrinfo( result );
 //		free( bufferbytes );

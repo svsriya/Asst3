@@ -22,12 +22,24 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
+int numDigits( int );
 int push( char*, int );
 int commit( char*, int );
 int update( char*, int );
 int upgrade( char*, int );
 Manifest* createLive( Manifest*, int );
 int readFromSocket( char**, int );
+
+int numDigits( int num )
+{
+        int digits = 0;
+        if( num == 0 ) return 1;
+        while( num != 0 ){
+                num = num/10;
+                digits++;
+        }
+        return digits;
+}
 
 int readFromSocket( char** buf, int sd )
 {
@@ -45,7 +57,7 @@ int readFromSocket( char** buf, int sd )
 	int i = 0;
 	while( rdres > 0 ){
 		rdres = read( sd, *buf+i, len-i );
-		printf("rdres: %d\n", rdres);
+		//printf("rdres: %d\n", rdres);
 		if( rdres == -1 ){
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 			return -1;
@@ -91,15 +103,15 @@ Manifest* createLive( Manifest* client_man, int cmd ) // generates the live hash
 			newnode->vnum = (char*)malloc(strlen(buf) + 1);
 			newnode->vnum[0] = '\0';
 			strcat( newnode->vnum, buf );
-			printf( "newnode->vnum = %s\n", newnode->vnum );	
+			//printf( "newnode->vnum = %s\n", newnode->vnum );	
 		}
 		else newnode->vnum = cptr->vnum;
 		lptr->next = newnode;
 		lptr = lptr->next;
 	}
 	lptr->next = NULL;
-	printf( "LIVE HASHES:\n" );	
-	printM(live);
+	//printf( "LIVE HASHES:\n" );	
+	//printM(live);
 	return live;
 }
 
@@ -405,23 +417,23 @@ int upgrade( char* projname, int ssd )
 	char* manpath;
 	char* filebuf;
 	int i = 0;
-	printf( ANSI_COLOR_YELLOW ".UPDATE\n%s" ANSI_COLOR_RESET, buf );
+	//printf( ANSI_COLOR_YELLOW ".UPDATE\n%s" ANSI_COLOR_RESET, buf );
 	
 	while( i<strlen(buf) )
 	{	// if ltr is 'D', ignore because .Manifest from server will overwrite
 	
 		char ltr = buf[i];
 		int pathlen;
-		printf( "Update command: %c\n", ltr );
+		//printf( "Update command: %c\n", ltr );
 		i += 2;	//pointing at beginning of filepath
 		int j;
 		for( j = i; buf[j] != '\n'; j++ );
 		pathlen = j-i; 
 		if( ltr == 'A' || ltr == 'M' )	// request the filepath from the server
 		{
-			char* tmp = (char*)malloc( 1 + pathlen );
+			char* tmp = (char*)malloc( 6 + pathlen );
 			tmp[0] = '\0';
-			snprintf( tmp, 1+pathlen, "%s", &buf[i] );
+			snprintf( tmp, 6+pathlen, "root/%s", &buf[i] );
 			printf( "requesting %s from the server...\n", tmp );
 			writeToSocket( &tmp, ssd );
 			readFromSocket( &filebuf, ssd ); // reads the protocol intended to replace	
@@ -431,7 +443,7 @@ int upgrade( char* projname, int ssd )
 			free( tmp );
 		}
 		i = j + 1;	//pointing at place after \n
-		printf( "buf: %s\n", &buf[i] );
+	//	printf( "buf: %s\n", &buf[i] );
 	}  
 	// get the server's .Manifest to overwrite the client's
 	manpath = (char*)malloc( 16 + strlen(projname) );
@@ -520,6 +532,8 @@ int commit( char* projname, int ssd )
 	{
 		printf( "Error: project is not up to date. Please run update on your project before running commit.\n" );
 		// SEND FAIL TO THE SERVER
+		char* err = "error";
+		writeToSocket( &err, ssd );
 		freeManifest(s_man);
 		freeManifest(c_man);
 		free(cman);
@@ -648,12 +662,7 @@ int push( char* projname, int ssd )
 	char* updatepath = (char*)malloc( 9+strlen(projname));
 	updatepath[0] = '\0';
 	snprintf( updatepath, 9+strlen(projname), "%s/.Update", projname );
-	if( stat( updatepath, &file_stat ) == -1 )
-	{	
-		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
-		return -1;
-	}
-	if( file_stat.st_size != 0 )
+	if( stat( updatepath, &file_stat ) != -1 && file_stat.st_size != 0 )
 	{
 		filebuf = (char*)malloc( file_stat.st_size + 1 );
 		if( (ufd = open( updatepath, O_RDONLY )) == -1 )
@@ -705,8 +714,105 @@ int push( char* projname, int ssd )
 	char* protocolpath = (char*)malloc( strlen(projname)+5);
 	snprintf( protocolpath, strlen(projname)+5, "push%s", projname );
 	createProtocol( &cmtpath, &cmd, &protocolpath, ssd );
-	
+	printf( ".Commit has been sent to the server.\n" );
+	// read back whether commit was valid
+	readFromSocket( &rcv, ssd );
+	if( strcmp( rcv, "invalid" ) == 0 )
+	{
+		printf( "Error: server was sent an invalid .Commit. Please run update and commit to create a valid .Commit file\n" );
+		return -1;
+	}// else okay was sent
+	printf( ".Commit sent to the server is valid!\n" );
+	free(rcv);
+	// change up .Manifest to reflect changes in the .Commit file	
+	char* manpath = (char*)malloc( strlen(projname)+16 );
+	Manifest* cman;
+	snprintf( manpath, strlen(projname)+16, "root/%s/.Manifest", projname );
+	build( manpath, &cman );
+	printM( cman );
+	// first delete all "removes"
+	Manifest* ptr = cman->next;
+	Manifest* prev = cman;
+	while( ptr != NULL )
+	{
+		//printf( "File in Manifest: %s\n", ptr->filepath );
+		if( strcmp(ptr->removed, "1") == 0 ){
+			Manifest* delete = ptr;
+			prev->next = ptr->next;
+			ptr = ptr->next;
+			delete->next = NULL;
+			freeManifest( delete );
+		}else{
+			prev = ptr;
+			ptr = ptr->next;
+		}
+	} 	
+	// write that client is ready to receive commands
+	char* rdy = "ready";
+	writeToSocket( &rdy, ssd );
+	// until rcv[0] is not A or M, accept file requests from server
+	readFromSocket( &rcv, ssd );
+	char s[3] = "\n\t";
+	char* token = strtok( rcv, s );	// either letter or nothing
+	while( token[0] == 'M' || token[0] == 'A' )
+	{	
+		//printf( "cmd: %s\n", rcv );
+		char* ltr = token;
+		token = strtok(NULL, s );	// version num
+		char* vers = token;
+		token = strtok( NULL, s);	// filepath
+		char* path = token;
+		token = strtok( NULL, s );
+		char* hs = token;
+		for(ptr = cman->next; ptr != NULL && strcmp(ptr->filepath, path) != 0; ptr=ptr->next);
+		// A - search for filepath on linked list, change onServer to 1, and send file to server
+		if( ltr[0] == 'A' )
+		{  
+			if( ptr != NULL )
+				ptr->onServer[0] = '1';			
+		}// M - search for the filepath on the linked list, change the hash and file version, and send file to server
+		else if( ltr[0] == 'M' )
+		{
+			if( ptr != NULL ){
+				ptr->vnum = vers;
+				ptr->hash = hs;
+			}	
+		}
+		createProtocol( &path, &cmd, &protocolpath, ssd );
+		free( rcv );
+		readFromSocket( &rcv, ssd );
+		token = strtok( rcv, s );
+	}	// "end" received from server
+	free(rcv);
+	// increment the project version
+	int newprojv = atoi(cman->projversion) + 1;
+	int size = numDigits( newprojv );
+	char num[size+1];
+	snprintf( num, size+1, "%d", newprojv );
+	cman->projversion = num;
+	writeM( &manpath[5], cman );	// write the new manifest to .Manifest
+	//send the manifest to the server
+	char* newman = &manpath[5];
+	createProtocol( &newman, &cmd, &protocolpath, ssd );
+	// read back success or fail from server
+	readFromSocket( &rcv, ssd );
+	if( strcmp( rcv, "okay" ) != 0 )
+		printf( "Error: unable to push changes to the repository.\n" );
+	free(rcv);
+	//delete the .Commit of the client
+	if( remove(cmtpath ) == -1 )
+	{
+		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
+		return -1;
+	}	
+	free(cmtpath);
+	free(manpath);
+	free(protocolpath);
+	free(updatepath);
+	return 0;
 }
+
+
 /*
 int main( int argc, char** argv )
 {

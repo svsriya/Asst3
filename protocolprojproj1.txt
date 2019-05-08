@@ -1,2 +1,0 @@
-sendsman:-3:26:./root/projproj1/.Manifest:39:1
-Filename	Version	On Serv	Removed	Hash:

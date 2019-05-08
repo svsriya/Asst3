@@ -9,8 +9,8 @@
 #include <signal.h>
 #include <pthread.h>
 
-#include "sendrcvfile.h"
-#include "sendrcvfile.c"
+//#include "sendrcvfile.h"
+//#include "sendrcvfile.c"
 
 #include "createprotocol.h"
 #include "createprotocol.c"
@@ -85,7 +85,7 @@ PROJECT ** searchinLL(char ** projname, PROJECT ** projstruct){
 }
 
 void addToLL(char ** projname){
-	printf(ANSI_COLOR_CYAN "IN ADDTOLL.\n" ANSI_COLOR_RESET);
+	//printf(ANSI_COLOR_CYAN "IN ADDTOLL.\n" ANSI_COLOR_RESET);
 	PROJECT * newproj = (PROJECT*)malloc(sizeof(PROJECT)*1); //create new LL
 	newproj->proj_lock = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER; //initialize projlock
 
@@ -102,7 +102,7 @@ void addToLL(char ** projname){
 	
 	//adding to LL here//
 	if(PROJECTS_LL == NULL){
-		printf("PROJECTS_LL is null\n");
+		//printf("PROJECTS_LL is null\n");
 		PROJECTS_LL = newproj;
 	}else{
 		newproj->next = PROJECTS_LL;
@@ -150,7 +150,7 @@ void * handleClient(void * thr_cont){
 	int i = 0;
 	while( rdres > 0 ){
 		rdres = read( cfd, bufread+i, len-i );
-		printf("rdrescmd: %d\n", rdres);
+		//printf("rdrescmd: %d\n", rdres);
 		if( rdres == -1 ){	
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 	exit(2);
@@ -203,7 +203,15 @@ void * handleClient(void * thr_cont){
 		if( upgrade(cfd) == -1 ){
 			printf( "Error: failed to upgrade project.\n" );
 		}
-	}	
+	}else if( strcmp( bufread, "push" ) == 0 ){
+		if( push(cfd) == -1 ){
+			printf( "Error: failed to push project.\n" );
+		}
+	}else if( strcmp( bufread, "rollback" ) == 0 ){
+		if( rollback(cfd) == -1 ){
+			printf( "Error: failed to rollback.\n" );
+		}
+	}
 	else{
 		//while(1);
 		printf("Error: invalid command.\n"); //exit(2);
@@ -239,7 +247,7 @@ int fetchHistory(int cfd){
 	int i = 0;
 	while( rdres > 0 ){
 		rdres = read( cfd, bufread2+i, len-i );
-		printf("rdres: %d\n", rdres);
+		//printf("rdres: %d\n", rdres);
 		if( rdres == -1 ){	
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 	return -1;
@@ -300,7 +308,7 @@ int currver(int cfd, int cs, char ** pn){
 		int i = 0;
 		while( rdres > 0 ){
 			rdres = read( cfd, bufread2+i, len-i );
-			printf("rdres: %d\n", rdres);
+			//printf("rdres: %d\n", rdres);
 			if( rdres == -1 ){	
 				printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
 				return -1;
@@ -482,7 +490,7 @@ int createProj(int cfd){
 	int i = 0;
 	while( rdres > 0 ){
 		rdres = read( cfd, bufread2+i, len-i );
-		printf("rdres: %d\n", rdres);
+		//printf("rdres: %d\n", rdres);
 		if( rdres == -1 ){	
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 	return -1;
@@ -538,7 +546,7 @@ int createProj(int cfd){
 		maindir = getcwd(maindir, 10000);
 		int len = strlen(maindir);
 		maindir[len]= '\0';
-		printf("maindir: %s\n", maindir);
+		//printf("maindir: %s\n", maindir);
 
 		if(maindir == NULL){
 			printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
@@ -554,7 +562,7 @@ int createProj(int cfd){
 		chdir(maindir); //free(maindir);
 		chdir(path);
 		
-		printf("current path: %s\n", path);
+		//printf("current path: %s\n", path);
 		
 		//create manifest
 		int manfd;
@@ -631,7 +639,7 @@ int createProj(int cfd){
 		int i = 0;
 		while( rdres > 0 ){
 			rdres = read( cfd, handshake1+i, hlen-i );
-			printf("rdres: %d\n", rdres);
+			//printf("rdres: %d\n", rdres);
 			if( rdres == -1 ){	
 				printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 		return -1;
@@ -670,7 +678,7 @@ int searchProj(char * proj){
 	path[0] = '\0';
 	strcat(path, "./root/");
 	strcat(path, proj);
-	printf("PATHSearch: %s\n", path);
+	//printf("PATHSearch: %s\n", path);
 
 //	DIR * dirp;
 	if((dirp = opendir(path)) == NULL){
@@ -704,7 +712,7 @@ int checkoutProj(int cfd){
 	int i = 0;
 	while( rdres > 0 ){
 		rdres = read( cfd, bufread2+i, len-i );
-		printf("rdres: %d\n", rdres);
+		//printf("rdres: %d\n", rdres);
 		if( rdres == -1 ){	
 			printf(ANSI_COLOR_CYAN "Error: %d Message: %s Line#: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__);
                 	return -1;

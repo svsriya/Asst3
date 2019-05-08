@@ -1,1 +1,83 @@
+TESTCASES
+----------------
 
+For all of our testcases, if two or more clients are trying to run commands on the same project, the first client who sends a command will run on a thread separate from the other clients, and aquire a mutex to lock the project. The other clients who are trying to run a command on the same project will wait until all the clients in front of them are done.
+If SIGINT is caught while threads are running, then the main thread will join on each of the threads to ensure they finish, and then shut down the server, so that all of the commands that were running as SIGINT was called finish before the server is shut down. 
+
+
+0. INPUT:	./WTFserver 9002
+   OUTPUT:	Server connects at port 9002, all threads are set up and the server can accept multiple client. The server will continue running until it get SIGINT
+
+1. INPUT: 	./WTF configure 128.6.5.103 9002
+   OUTPUT:	.configure file: 128.6.5.103 9002
+
+2. INPUT:	./WTF create proj1
+   OUTPUT:
+
+Server Side:
+./
+|--- root
+	|---- proj1
+		|----.Manifest
+		|---- history
+
+Server sends .Manifest to Client
+
+Client Side:
+./
+|---- proj1
+	|----.Manifest (from server)
+
+3. INPUT:	./WTF checkout proj1
+   OUTPUT:	Client ends up with proj1 in ./ with all files inside of proj1 on the server's side
+
+4. INPUT:	./WTF currentversion proj1
+   OUTPUT:	<the .Manifest of proj1 is printed out on client's end
+
+	ex:
+		1
+		Filepath	Ver#	On Server	Removed	Hash
+		proj1/derp.txt	0	1	0	qweriuoiw309uf8w4u9f8uwe9f82398u40er9iuf
+
+5. INPUT:	./WTF history
+   OUTPUT:	Server sends history to client and history is printed out on client's side
+	
+	ex:
+		create
+		0
+		
+		push
+		1
+		A	1	proj1/helllo.txt	2309gaj0484398yf9dausd0fu28e43rae
+
+6. INPUT:	./WTF add proj1 proj1/help.txt
+   OUTPUT:	If help.txt is found in proj1, then it is added to the .Manifest, a version number of 0 is given, and a hash is generated. It is marked as not seen by the server. 			Otherwise, error is printed.
+
+7. INPUT:	./WTF remove proj1 proj1/help.txt
+   OUTPUT:	If help.txt is found on proj1, then in the .Manifest, it is marked as removed. Otherwise, error is printed.
+
+8. INPUT:	./WTF commit proj1 
+   OUTPUT:	If the projects version on client and server are the same, then .Commit is generated with MAD codes, M indicated that a file on both client and server was Modified and has a new version and has; A indicating a file on the client but not on the server; and D indicating a file on the server but not the client, ie marked as removed by the client. If the project versions are not the same, the client sees an error and is asked to update and upgrade before committing. The .Commit is sent to the server, who keeps track as a global variable the number of .Commits made ever. The .Commit is placed into the project directory on the server's side and renamed as .Commit<number>. For instance, the very first .Commit sent over would be renamed as .Commit0, and another .Commit for the same project would be in the same directory as .Commit1. Each project directory on the server has its active .Commits.
+
+9. INPUT	./WTF push proj1
+   		.Commit:
+		A	0	proj1/file.md	q3r8efjq-39h8-9384hf-9q834hrf
+		M	3	proj1/derp.txt 8u984u98jf983j94hf38489f3874yf
+
+   OUTPUT:	Server checks that this .Commit is a perfect match with one of its active commits. If yes, all other .Commits are deleted. If ./prev doesn't exist, then this directory is created to house all previous versions of the project. The current version in ./root of the project is copied as proj11 (to indicate version 1 ) into ./prev. The client on the other hand will edit its .Manifest as the server requests the above files from the client, and send the final edited .Manifest with the incremented project version, in this case 2, over to the server, who replaces its current .Manifest with the new one. The history will then contain:
+	create
+	1
+
+	push
+	2
+	A       0       proj1/file.md   q3r8efjq-39h8-9384hf-9q834hrf
+        M       3       proj1/derp.txt 8u984u98jf983j94hf38489f3874yf
+
+10. INPUT: 	./WTF update proj1
+    OUTPUT:     If project versions are the same, as they are in this case, no changes are made and .Update is created. Any files to upload are printed into client's terminal in green and client is told to upload these files. If the project versions are not the same, then all files in .Manifest of the server/client are marked with MAD, unless no changes are made, so they will be ignored.
+
+11. INPUT	./WTF upgrade proj1
+    OUTPUT	Client runs all .Update commands and requests from server any files with A or M. If any errors occur along the way, error is reported and upgrade is cancelled.
+
+12. INPUT	./WTF destroy proj1
+    OUTPUT	Server locks the project and recursively deletes all files in the project, reporting success to client or error if anything goes wrong. All threads that try to access the same project afterwards will see an error that the project does not exist.

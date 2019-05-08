@@ -88,7 +88,7 @@ void build( char* manpath, Manifest** head )
 	char* line;
 	// 1. open the .Manifest file for the project
 	// need to build path for .Manifest
-	printf( "Path of manifest being built: %s\n", manpath );
+	//printf( "Path of manifest being built: %s\n", manpath );
 	if( stat( manpath, &file_stat ) == -1 )
 	{
 		printf( ANSI_COLOR_CYAN "Errno: %d Message: %s Line: %d\n" ANSI_COLOR_RESET, errno, strerror(errno), __LINE__ );
@@ -395,11 +395,11 @@ void freeManifest( Manifest* head )
 	{
 		Manifest* prev = ptr;
 		ptr = ptr->next;
-		free(prev->projversion);
-		free(prev->filepath);
-		free(prev->vnum);
-		free(prev->onServer);
-		free(prev->removed);
+		//free(prev->projversion);
+		//free(prev->filepath);
+		//free(prev->vnum);
+		//free(prev->onServer);
+	//free(prev->removed);
 //		free(prev->hash);
 		free(prev);
 	}
